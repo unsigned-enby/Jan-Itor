@@ -1,5 +1,6 @@
 Jan-Itor
 ========
+
 ![Demo](demo.mp4)
 
 Description
@@ -76,6 +77,7 @@ ninja -C .
 
 Using
 =====
+
 CSV Menu
 --------
    - Supply the given `Input File`, field `Delimiter`, and `Quote`. Then press `Open File`
@@ -89,6 +91,7 @@ CSV Menu
    - The associated data is updated by `IpForm Menu` and the `Make corrections` button of 
      `Serial Positioning & Corrections`. Said data may be saved by supplying a `Output File` and 
      pressing `Save File`
+
 IpForm Menu
 -----------
    - `Black Space` & `Removles` may be given via individual characters or the `Ranges` check boxes
@@ -114,6 +117,7 @@ IpForm Menu
       - The column to be cleaned/formated
    - `Clean Column`:
       - Formats the given column based on the supplied choices.
+
 Serial Positioning & Corrections
 --------------------------------
    - `Files`:
