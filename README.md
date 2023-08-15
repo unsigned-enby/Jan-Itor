@@ -21,6 +21,7 @@ Building
    - Cmake
    - Make (if on unix) / Ninja(if on Windows).
    - FTXUI (automatically downloaded by Cmake).
+
 Linux instructions
 ------------------
 ```bash
@@ -30,6 +31,7 @@ mkdir build && cd ./build
 cmake ..
 make -j$(nproc)
 ```
+
 Windows
 -------
    - While Jan-Itor can be natively built on Windows, you may find it preferable 
@@ -37,6 +39,7 @@ Windows
      While WSL will take (slightly) longer, and use (a moderate amount of) more disk space,
      it will leave you with a virtual Linux system installed (that you may even use to run GUI apps!)
      I will give instructions for both.
+
 WSL:
 ----
    - First open up a Windows Terminal and type `wsl --install` and accept the requested permissions.
@@ -52,6 +55,7 @@ sudo apt upgrade # Not strictly required but ultimately recomended
 sudo apt install build-essentials cmake git
 ```
    - Then simply follow the instructions for Linux!
+
 Building natively on Windows:
 -----------------------------
    - First open a Windows Terminal and run these commands:
