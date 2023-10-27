@@ -91,11 +91,6 @@ void MyCSV::readTable(string inFile, bool header) {
          }
          addHeader(str);
       }
-      ch = infile.peek();
-      while(charClass(ch) == RDELIM) {
-         infile.get();
-         ch = infile.peek();
-      }
    }
    int startPos = (int)infile.tellg(); 
    infile.seekg(0, std::ios::end);
