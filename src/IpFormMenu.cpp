@@ -49,9 +49,8 @@ Component IpFormMenu(MyCSV* Csv) {
                setBlackSpace(BSR);
                setRemovles(Removles, true);
                setRemovles(RR);
-               setSubDelim(Delim);
-               Csv->setSubDelim(SelectedColumn, Delim); 
-               cleanColumn(Csv->getCol(SelectedColumn));
+               Csv->at(SelectedColumn)->subDelim(Delim); 
+               cleanColumn(Csv->at(SelectedColumn));
             };
             ProcessButton = Button("Clean Column", buttonAction);
             //navigation configuration

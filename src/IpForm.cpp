@@ -1,6 +1,5 @@
 #include <iostream>
 #include "IpForm.hpp"
-using std::vector;
 using std::string;
 //********************************************************************
 string IpForm::charRange(std::array<bool, 3> ranges) { //NOLINT
@@ -43,8 +42,8 @@ void IpForm::setRemovles(string removles, bool clear) {
    Removles += removles;
 }
 //********************************************************************
-void IpForm::removeChars(vector<string> &col) {
-   for(string &row : col) {
+void IpForm::removeChars(MyCol* col) {
+   for(string &row : *col) {
       //XXX: Check wether row.size is adjusted on each loop
       for(int i=0; i<row.size() ;i++) { //NOLINT
          for(char ch : Removles) {
@@ -53,12 +52,12 @@ void IpForm::removeChars(vector<string> &col) {
                i--;
                break;
 }  }  }  }  }
-void IpForm::cleanColumn(vector<string> &col) {
+void IpForm::cleanColumn(MyCol* col) {
    removeChars(col); 
    //first checks wether the given char is part of the BlackSpace vec
    //then, if it is not BlackSpace, it checks wether the pos in the current
    //string is imediately after a BlackSpace char (for the sake of sub-delims)
-   for(string &row : col) {
+   for(string &row : *col) {
       //TODO: make charId enum-based
       int i = 0;
       bool after_target = false;
@@ -81,7 +80,7 @@ void IpForm::cleanColumn(vector<string> &col) {
                after_target = true;
                break;
             case 2:       //after target(which is not a target, hence no break)
-               row.insert(i,1,SubDelim);
+               row.insert(i,1,*col->subDelim());
                i++;
                after_target = false;
             case 3:       //not target
@@ -90,7 +89,7 @@ void IpForm::cleanColumn(vector<string> &col) {
             default:
                std::cerr << "ERROR<ipProcess>\n";
       }  }
-      if(!row.empty() && row.back() == SubDelim)
+      if(!row.empty() && row.back() == *col->subDelim())
          row.pop_back();
       for(char &ch : row) //NOLINT
          ch = tolower(ch);

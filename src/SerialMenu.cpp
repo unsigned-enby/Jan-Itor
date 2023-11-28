@@ -63,9 +63,9 @@ Component SerialMenu(MyCSV* Csv) {
                if(!TargetFile.empty()) {
                   configTargDisplay(readTargetWords(TargetFile));
                }
-               setPIDS(&Csv->getCol(PID_Col));
-               SubDelim  = Csv->getSubDelim(RespCol);
-               UniqWords = setResponses(&Csv->getCol(RespCol));
+               Csv->at(RespCol)->header(string{"RESPONSES"});
+               Csv->at(PID_Col)->header(string{"PIDS"});
+               UniqWords = getUniqWords(Csv);
             };
             TargetInput     = Input(&TargetFile, "Target File");
             SaveInput       = Input(&SaveFile, "Save File");

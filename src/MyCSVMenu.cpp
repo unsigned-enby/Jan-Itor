@@ -5,8 +5,8 @@ Component MyCSVMenu(MyCSV* Csv) {
    class Impl : public ComponentBase {
       private:
          MyCSV* Csv;
-         string InFile;
-         string OutFile;
+         std::string InFile;
+         std::string OutFile;
          char Delim = '\0';
          std::vector<std::string> Quotes {"\"", "'"};
          int SelectedQuote = 0;   
@@ -37,10 +37,10 @@ Component MyCSVMenu(MyCSV* Csv) {
          } 
          //display configuration
          Element Render() override {
-            return window(text("CSV Menu"), 
+            return window(text("CSV Menu"),
                           vbox(hbox(text("Column count: " + std::to_string(Csv->size())), 
                                     text(" "), filler(),
-                                    text("Row Count: " + std::to_string(Csv->getRowCount()))),
+                                    text("Row Count: " + std::to_string(Csv->rowCount()))),
                                hbox(InputFile->Render(),  ReadButton->Render()),
                                hbox(OutputFile->Render(), SaveButton->Render()),
                                hbox(window(text("Delimiter"), DelimDrop->Render()), 

@@ -25,18 +25,17 @@ void Serial::makeCorrections(vector<string> correctedWords) {   //NOLINT
          Corrections[1].push_back(correctedWords[i]);
       }
    }
-   bool bothFound = false;
-   int  row = 0;
-   for(vector<string> &response : ParsedResponses) {
-      for (string &respWord : response) {
+   int row = 0;
+   for(auto &parsedResponse : ParsedResponses) {
+      for (auto &respWord : parsedResponse) {
          for(int i=0; i < Corrections[0].size() ; i++) {
-            bothFound = false;
             // first checks for corrected form, 
             // if (both are) found, then the original is not a likely typo
             // TODO: verify that previous changes to a response will not
             // messup subsequent changes in (response) loop
             if (respWord == Corrections[0][i]) {
-               for (const string &rsWd: response) {
+               bool bothFound = false;
+               for (const string &rsWd: parsedResponse) {
                   if (Corrections[1][i] == rsWd) {
                      bothFound = true;
                      break;
@@ -52,75 +51,74 @@ void Serial::makeCorrections(vector<string> correctedWords) {   //NOLINT
 }
 //********************************************************************
 MyCSV* Serial::serialize() {   
-   if(!Responses) {
-      return NULL;
+   if(!Table) {
+      return nullptr;
    }
    MyCSV* serialPos = new MyCSV; //NOLINT
-   serialPos->addHeader("PID");
-   serialPos->addHeader("Intrusions");
+   serialPos->addCol(*Table->getCol("PIDS"));
+   serialPos->addCol("Intrusions");
    for(const string &str : TargetWords)
-      serialPos->addHeader(str);
-   const int targCount = TargetWords.size(); //NOLINT
-   serialPos->resize(targCount+2); //+2 to account for PID & intrusions field
-
-   serialPos->getCol(0) = *PIDS;
-   for(int i=1; i<serialPos->size(); i++) 
-      serialPos->getCol(i).resize(Responses->size());
+      serialPos->addCol(str);
 
    //For each item in a ParsedResponse, check for a match against, target list.
    //If found, assign the position of 'item' in the ParsedResponse to the target collumn
-   for(int row=0; row<ParsedResponses.size(); row++) {
+   int row = -1;
+   for(vector<string> &resp : ParsedResponses) { //row
+      row++;
       int numIntrusions = 0;
-      const vector<string> &resp = ParsedResponses[row];
-      for(int respIdx=0; respIdx < resp.size(); respIdx++) {
+      int respIdx = -1;
+      for(const std::string &respItem : resp) { //row items
+         respIdx++;
          bool found = false;
-         for(int targIdx=0; targIdx < targCount; targIdx++) {
-            if (TargetWords[targIdx] == resp[respIdx]) {
+         for(const std::string &target : TargetWords) {
+            if(target == respItem) {
                found = true;
-               if(serialPos->getCol(targIdx+2)[row].empty())
-                  serialPos->getCol(targIdx+2)[row] = std::to_string(respIdx + 1);
-               else {   
-                  string temp = " " + std::to_string(respIdx + 1);
-                  serialPos->getCol(targIdx+2)[row].append(temp);
-               }   
+               std::string &str = serialPos->getCol(target)->at(row);
+               if(str.empty()) {
+                  str = std::to_string(respIdx+1);
+               } else {
+                  str += " " + std::to_string(respIdx+1);
+               }
                break;
-            }   
+            }
          }
          if (!found) 
             numIntrusions++;
       }   
-      serialPos->getCol(1)[row] = std::to_string(numIntrusions);
+      serialPos->getCol("Intrusions")->at(row) = std::to_string(numIntrusions);
    }   
    writeLog();
    return serialPos;
 }
 //********************************************************************
 void Serial::parseResp() {
+   auto respCol  = Table->getCol("RESPONSES");
+   char subDelim = *respCol->subDelim();
    ParsedResponses.clear();
-   ParsedResponses.resize(Responses->size());
-   int row = 0;
-   for(const string &response : *Responses) {
+   ParsedResponses.resize(respCol->size());
+   auto parsedResponse = ParsedResponses.begin();
+   for(const string &response : *respCol) {
       string subItem;
       for (const char &ch : response) {
-         if(ch != SubDelim) {
-            subItem.push_back(ch);
+         if(ch == subDelim) {
+            parsedResponse->push_back(subItem);
+            subItem.clear();
          }
          else {
-            ParsedResponses[row].push_back(subItem);
-            subItem.clear();
+            subItem.push_back(ch);
          }
       }
       if(!subItem.empty()) {
-         ParsedResponses[row].push_back(subItem);
+         parsedResponse->push_back(subItem);
       }
-      row++;
-}  }
+      parsedResponse++;
+   }  
+}
 void Serial::uniqWords() {
    UniqueWords.clear();
-   bool found = false;
-   for (vector<string> &parsedResp : ParsedResponses) {
-      for (string &respWord : parsedResp) {
-         found = false;
+   for (const vector<string> &parsedResp : ParsedResponses) {
+      for (const string &respWord : parsedResp) {
+         bool found = false;
          for(const string &targetWord : TargetWords) {
             if (respWord == targetWord) {                
                found = true;
@@ -134,17 +132,25 @@ void Serial::uniqWords() {
          }  }  }   
          if (!found) {
             UniqueWords.push_back(respWord);
-}  }  }  }   
+         }  
+      }  
+   }  
+}   
 void Serial::updateResponses() {
-   for(int i=0; i<Responses->size() ; i++) {
-      string &str = Responses->at(i);
-      str.clear();
-      for(const string &respWord : ParsedResponses[i]) {
-         str += respWord + SubDelim;
+   //std::vector<std::vector<std::string>>::iterator parsedResponse = ParsedResponses.begin();
+   auto respCol = Table->getCol("RESPONSES");
+   char subDelim = *respCol->subDelim();
+   auto parsedResponse = ParsedResponses.begin();
+   for(string &resp : *respCol) {
+      resp.clear();
+      for(const string &respWord : *parsedResponse) {
+         resp += respWord + subDelim;
       }
-      if(!str.empty()) {
-         str.pop_back();
-}  }  }
+      if(!resp.empty()) {
+         resp.pop_back();
+      }  
+      parsedResponse++;
+}  }
 void Serial::writeLog(string logFile) {
    std::ofstream outfile(logFile);
    outfile << "UNIQUE WORDS" << '\n' << UniqueWords.size() << '\n';

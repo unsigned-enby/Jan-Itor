@@ -10,25 +10,19 @@ using std::string;
 
 class Serial {
    public:
-      void setPIDS (vector<string>* pids ) {PIDS = pids;}   
-      vector<string> setResponses(vector<string>* resps) {
-         Responses = resps;
+      vector<string> getUniqWords(MyCSV* table) {
+         Table = table;
          parseResp();
          uniqWords();
          return UniqueWords;
       }
-      
       vector<string> readTargetWords(string targFile);
-      
-      void makeCorrections(vector<string> correctedWords);
-      MyCSV* serialize  ();
+      void   makeCorrections(vector<string> correctedWords);
+      MyCSV* serialize();
 
-      //XXX temporary fix 
-      char SubDelim;
    private:
       //internals   
-      vector<string>* PIDS      = nullptr;
-      vector<string>* Responses = nullptr;
+      MyCSV* Table = nullptr;
       vector<vector<string>> ParsedResponses;
       
       vector<string> TargetWords;

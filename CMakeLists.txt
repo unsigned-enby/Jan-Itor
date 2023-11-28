@@ -36,6 +36,7 @@ add_library(Jan-Itor_lib
   src/IpForm.hpp
   src/IpFormMenu.cpp
   src/IpFormMenu.hpp
+  src/MyCol.hpp
   src/MyCSV.cpp
   src/MyCSV.hpp
   src/MyCSVMenu.cpp
