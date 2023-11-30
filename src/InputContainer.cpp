@@ -10,17 +10,14 @@ Component InputContainer(vector<string>* inVec, vector<string>* outVec) {
       private:
          vector<string>* InVec;
          vector<string>* OutVec;
-         //SavedStart is a unique identifier, nothing more
-         string* SavedStart;
          Component child = Container::Vertical({}); //placeholder
          void configChild() {
-            SavedStart = InVec->data();
+            child->DetachAllChildren();
             OutVec->clear();
             OutVec->resize(InVec->size());   
-            child->DetachAllChildren();
             child = Container::Vertical({});
-            if(InVec->front().empty()) {
-               child->Add(Renderer([] { return text(""); }));
+            if(InVec->empty()) {
+               child->Add(Renderer([] { return text(""); })); //prevents 'Empty container' being displayed
                return;
             }
             //TODO: check to see if creating a Component Vector that is then 
@@ -34,18 +31,15 @@ Component InputContainer(vector<string>* inVec, vector<string>* outVec) {
       public:
          Impl(vector<string>* inVec, vector<string>* outVec) : InVec(inVec), 
                                                                OutVec(outVec) {
-            if(InVec->size() == 0) {
-               InVec->emplace_back();
-            }
             configChild();
          }
          Element Render() override {
-            if(SavedStart != InVec->data()) { 
-               configChild();
-            }
             return child->Render();
          }
+         ///reconfigures child when OnEvent is manually called with 'Event::Custom'
          bool OnEvent(Event event) override {
+            if(event == Event::Custom)
+               configChild();
             return child->OnEvent(event);
          }
          bool Focusable () const override { return true; }

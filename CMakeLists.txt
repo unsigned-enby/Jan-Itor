@@ -1,26 +1,34 @@
 cmake_minimum_required(VERSION 3.14)
 
-#Fetch content
-include(FetchContent)
-set(FETCHCONTENT_UPDATES_DISCONNECTED TRUE)
-set(FETCHCONTENT_QUIET FALSE)
-FetchContent_Declare(ftxui
-  GIT_REPOSITORY https://github.com/ArthurSonzogni/ftxui
-  GIT_TAG v4.1.1
-  GIT_PROGRESS TRUE
-)
-FetchContent_GetProperties(ftxui)
-if(NOT ftxui_POPULATED)
-  FetchContent_Populate(ftxui)
-  add_subdirectory(${ftxui_SOURCE_DIR} ${ftxui_BINARY_DIR} EXCLUDE_FROM_ALL)
-endif()
-
-#Project
 project(Jan-Itor
   VERSION 1.0.0
   DESCRIPTION "Terminal app to clean and serialize single word responses"
   LANGUAGES CXX
 )
+
+option(SYSTEM_FTXUI "Use the system's ftxui libraries" OFF)
+
+if(SYSTEM_FTXUI)
+   find_package(ftxui)
+else()
+   #Fetch content
+   include(FetchContent)
+   set(FETCHCONTENT_UPDATES_DISCONNECTED TRUE)
+   set(FETCHCONTENT_QUIET FALSE)
+   FetchContent_Declare(ftxui
+     GIT_REPOSITORY https://github.com/ArthurSonzogni/ftxui
+     GIT_TAG v4.1.1
+     GIT_PROGRESS TRUE
+   )
+   FetchContent_GetProperties(ftxui)
+   if(NOT ftxui_POPULATED)
+     FetchContent_Populate(ftxui)
+     add_subdirectory(${ftxui_SOURCE_DIR} ${ftxui_BINARY_DIR} EXCLUDE_FROM_ALL)
+   endif()
+endif()
+
+#Project
+
 # ---- Declare library ----
 
 add_library(Jan-Itor_lib 

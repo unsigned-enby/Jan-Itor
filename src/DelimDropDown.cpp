@@ -9,7 +9,7 @@ Component DelimDropDown(char* delim) {
          char* Delim;
          
          std::vector<std::string> DelimChoices {"TAB", "VTAB",
-            "SPACE", ";", ",", ":", "%", "#", "$", "&", "@", "?"};
+            "SPACE", "NULL", ";", ",", ":", "%", "#", "$", "&", "@", "?"};
          string Delimiter = DelimChoices[0];
          int DelimIdx  = 0;
          bool Show = false;
@@ -30,6 +30,9 @@ Component DelimDropDown(char* delim) {
                      break;
                   case 2:
                      *Delim = ' ';
+                     break;
+                  case 3:
+                     *Delim = '\0';
                      break;
                   default:
                      *Delim = DelimChoices[DelimIdx][0];

@@ -10,14 +10,16 @@ using std::string;
 
 class Serial {
    public:
-      vector<string> getUniqWords(MyCSV* table) {
-         Table = table;
-         parseResp();
-         uniqWords();
+      vector<string> getUniqWords(MyCSV* table = nullptr) {
+         if(table) {
+            Table = table;
+            parseResp();
+            uniqWords();
+         }
          return UniqueWords;
       }
       vector<string> readTargetWords(string targFile);
-      void   makeCorrections(vector<string> correctedWords);
+      vector<string> makeCorrections(vector<string> correctedWords);
       MyCSV* serialize();
 
    private:

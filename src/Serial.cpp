@@ -2,6 +2,9 @@
 #include "Serial.hpp"
 vector<string> Serial::readTargetWords(string targFile) {
    TargetWords.clear();
+   if(targFile.empty())
+      return TargetWords;
+   
    std::ifstream infile(targFile);
    if(infile.fail()) {
       std::cerr << "The target word file: " << targFile << " did not open properly!\n";
@@ -17,8 +20,12 @@ vector<string> Serial::readTargetWords(string targFile) {
    return TargetWords;
 }
 //*******************************************************************
-void Serial::makeCorrections(vector<string> correctedWords) {   //NOLINT
-   //TODO: Check to see if I can use `array` facilities to join the two below lines,
+vector<string> Serial::makeCorrections(vector<string> correctedWords) {   //NOLINT
+   Corrections[0].clear();
+   Corrections[1].clear();
+
+   if(correctedWords.empty() || !Table)
+      return {};
    for(int i = 0; i<correctedWords.size(); i++) {
       if(!correctedWords[i].empty()) {
          Corrections[0].push_back(UniqueWords[i]);
@@ -30,7 +37,7 @@ void Serial::makeCorrections(vector<string> correctedWords) {   //NOLINT
       for (auto &respWord : parsedResponse) {
          for(int i=0; i < Corrections[0].size() ; i++) {
             // first checks for corrected form, 
-            // if (both are) found, then the original is not a likely typo
+            // if both are found, then the original is not a likely typo
             // TODO: verify that previous changes to a response will not
             // messup subsequent changes in (response) loop
             if (respWord == Corrections[0][i]) {
@@ -48,6 +55,8 @@ void Serial::makeCorrections(vector<string> correctedWords) {   //NOLINT
       row++;
    }   
    updateResponses();
+   uniqWords();
+   return UniqueWords;
 }
 //********************************************************************
 MyCSV* Serial::serialize() {   
@@ -55,10 +64,10 @@ MyCSV* Serial::serialize() {
       return nullptr;
    }
    MyCSV* serialPos = new MyCSV; //NOLINT
-   serialPos->addCol(*Table->getCol("PIDS"));
-   serialPos->addCol("Intrusions");
+   serialPos->append(*Table->getCol("PIDS"));
+   serialPos->append("Intrusions");
    for(const string &str : TargetWords)
-      serialPos->addCol(str);
+      serialPos->append(str);
 
    //For each item in a ParsedResponse, check for a match against, target list.
    //If found, assign the position of 'item' in the ParsedResponse to the target collumn
@@ -92,9 +101,17 @@ MyCSV* Serial::serialize() {
 }
 //********************************************************************
 void Serial::parseResp() {
-   auto respCol  = Table->getCol("RESPONSES");
-   char subDelim = *respCol->subDelim();
    ParsedResponses.clear();
+   
+   char subDelim = -1;
+   auto respCol = Table->getCol("RESPONSES");
+   if(respCol->subDelim()) {
+      subDelim = *respCol->subDelim();
+   } else {
+      std::cerr << "Error, the sub delim for the response column is not set!\n";
+      return;
+   }
+   
    ParsedResponses.resize(respCol->size());
    auto parsedResponse = ParsedResponses.begin();
    for(const string &response : *respCol) {
@@ -120,13 +137,13 @@ void Serial::uniqWords() {
       for (const string &respWord : parsedResp) {
          bool found = false;
          for(const string &targetWord : TargetWords) {
-            if (respWord == targetWord) {                
+            if (targetWord == respWord) {                
                found = true;
                break;
          }  }
          if (!found) {
             for(const string &uniqWord : UniqueWords) {    
-               if (respWord == uniqWord) {          
+               if (uniqWord == respWord) {          
                   found = true;                     
                   break;                            
          }  }  }   
@@ -139,7 +156,13 @@ void Serial::uniqWords() {
 void Serial::updateResponses() {
    //std::vector<std::vector<std::string>>::iterator parsedResponse = ParsedResponses.begin();
    auto respCol = Table->getCol("RESPONSES");
-   char subDelim = *respCol->subDelim();
+   char subDelim = -1;
+   if(respCol->subDelim()) {
+      subDelim = *respCol->subDelim();
+   } else {
+      subDelim = ' ';
+      respCol->subDelim(subDelim);
+   }
    auto parsedResponse = ParsedResponses.begin();
    for(string &resp : *respCol) {
       resp.clear();
@@ -150,7 +173,8 @@ void Serial::updateResponses() {
          resp.pop_back();
       }  
       parsedResponse++;
-}  }
+   }  
+}
 void Serial::writeLog(string logFile) {
    std::ofstream outfile(logFile);
    outfile << "UNIQUE WORDS" << '\n' << UniqueWords.size() << '\n';
