@@ -10,23 +10,23 @@ Component InputContainer(vector<string>* inVec, vector<string>* outVec) {
       private:
          vector<string>* InVec;
          vector<string>* OutVec;
-         Component child = Container::Vertical({}); //placeholder
+         Element savedElement;
+         //Component child = Container::Vertical({}); //placeholder
          void configChild() {
-            child->DetachAllChildren();
+            DetachAllChildren();
             OutVec->clear();
-            OutVec->resize(InVec->size());   
-            child = Container::Vertical({});
             if(InVec->empty()) {
-               child->Add(Renderer([] { return text(""); })); //prevents 'Empty container' being displayed
+               savedElement = text("");
                return;
             }
-            //TODO: check to see if creating a Component Vector that is then 
-            //added to `child` would be more efficient
+            OutVec->resize(InVec->size());   
+            //TODO: test to see if this is more or less effiecient that having a 'child' member object
+            Components inputs;
             for(int i = 0; i < InVec->size() ; i++) {
-               child->Add(Input(&OutVec->at(i), &InVec->at(i)));
+               inputs.emplace_back(Input(&OutVec->at(i), &InVec->at(i)));
             }
-            child |= vscroll_indicator;
-            child |= frame;
+            Add(Container::Vertical(std::move(inputs)));
+            savedElement = ActiveChild()->Render();
          }
       public:
          Impl(vector<string>* inVec, vector<string>* outVec) : InVec(inVec), 
@@ -34,15 +34,26 @@ Component InputContainer(vector<string>* inVec, vector<string>* outVec) {
             configChild();
          }
          Element Render() override {
-            return child->Render();
+            if(ActiveChild() && ActiveChild()->Focused()) {
+               savedElement = ActiveChild()->Render();
+            }
+            return savedElement | vscroll_indicator | frame;
          }
          ///reconfigures child when OnEvent is manually called with 'Event::Custom'
          bool OnEvent(Event event) override {
-            if(event == Event::Custom)
+            if(event == Event::Custom) {
                configChild();
-            return child->OnEvent(event);
+               return true;
+            }
+            if (!Focused()) {
+               return false;
+            }
+            if (ActiveChild() && ActiveChild()->OnEvent(event)) {
+               return true;
+            }
+            return false;
          }
          bool Focusable () const override { return true; }
    };
-   return Make<Impl>(inVec, outVec);
+   return Make<Impl>(std::move(inVec), std::move(outVec));
 }

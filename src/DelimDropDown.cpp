@@ -42,9 +42,12 @@ Component DelimDropDown(char* delim) {
                   Delimiter = DelimChoices[DelimIdx];
                }
             };
-            radioBox = Radiobox(&DelimChoices, &DelimIdx, Rbo) | vscroll_indicator | frame;
+            radioBox = Radiobox(&DelimChoices, &DelimIdx, Rbo);
             collapsible = Collapsible(&Delimiter, radioBox, &Show);
             Add(collapsible);
+         }
+         Element Render() override {
+            return ActiveChild()->Render() | vscroll_indicator | frame;
          }
          bool OnEvent(Event event) override {
             bool retBool = false;
@@ -56,13 +59,13 @@ Component DelimDropDown(char* delim) {
                }
                Show = !Show;
             } else {
-               retBool = ChildAt(0)->OnEvent(event);
+               retBool = ActiveChild()->OnEvent(event);
             }
             if(Show) {
                radioBox->TakeFocus();
             }
             else {
-               collapsible->ChildAt(0)->ChildAt(0)->TakeFocus();
+               ActiveChild()->ChildAt(0)->ChildAt(0)->TakeFocus();
             }
             return retBool;
          }

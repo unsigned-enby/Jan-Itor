@@ -21,9 +21,19 @@ string IpForm::charRange(std::array<bool, 3> ranges) { //NOLINT
    }  
    return retString;
 } 
+void IpForm::setBlackSpace(string blackSpace, bool clear) {
+   if(clear)
+      BlackSpace.clear();
+   BlackSpace += blackSpace;
+}
 void IpForm::setBlackSpace(std::array<bool, 3> ranges, bool clear) {
    if(clear)
       BlackSpace.clear();
+   BlackSpace += charRange(ranges);
+}
+void IpForm::setBlackSpace(std::array<bool, 3> ranges, string blackSpace) {
+   BlackSpace.clear();
+   BlackSpace += blackSpace;
    BlackSpace += charRange(ranges);
 }
 void IpForm::setRemovles(std::array<bool, 3> ranges, bool clear) {
@@ -31,20 +41,19 @@ void IpForm::setRemovles(std::array<bool, 3> ranges, bool clear) {
       Removles.clear();
    Removles += charRange(ranges);
 }
-void IpForm::setBlackSpace(string blackSpace, bool clear) {
-   if(clear)
-      BlackSpace.clear();
-   BlackSpace += blackSpace;
-}
 void IpForm::setRemovles(string removles, bool clear) {
    if(clear)
       Removles.clear();
    Removles += removles;
 }
+void IpForm::setRemovles(std::array<bool, 3> ranges, string removles) {
+   Removles.clear();
+   Removles += removles;
+   Removles += charRange(ranges);
+}
 //********************************************************************
 void IpForm::removeChars(MyCol* col) {
    for(string &row : *col) {
-      //XXX: Check wether row.size is adjusted on each loop
       for(int i=0; i<row.size() ;i++) { //NOLINT
          for(char ch : Removles) {
             if(row[i]==ch) {

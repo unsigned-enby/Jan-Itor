@@ -2,13 +2,14 @@
 #include <iostream>
 #include "InputContainer.hpp"
 #include "SerialMenu.hpp"
+//TODO:
+//   - add a button to write the (current) uniq word list to a file
 using namespace ftxui;
 using std::vector;
 using std::string;
 Component SerialMenu(MyCSV* Csv) {
    class Impl : public Serial, public ComponentBase {
       private:
-         MyCSV* Csv; //NOLINT
          vector<string> ColumnLables {"NA"};
 	      std::string TargetFile;
 	      std::string SaveFile;
@@ -18,10 +19,11 @@ Component SerialMenu(MyCSV* Csv) {
          vector<string> CorrectedWords;
          Component TargetInput;
          Component SaveInput;
-         Component RespToggle;
+         Component RespSel;
          Component PIDToggle;
          Component GetButton;
          Component MakeButton;
+         Component SaveButton;
          Component SerializeButton;
          Component CorrectionMenu;
          
@@ -49,32 +51,52 @@ Component SerialMenu(MyCSV* Csv) {
             TargDisplay = window(text("Target Words"), vbox(targDisplay));
          }
       public:
-         Impl(MyCSV* csv) : Csv(csv) { //NOLINT
+         Impl(MyCSV* csv) { //NOLINT
+            Table = csv;
             TargetInput = Input(&TargetFile, "Target File");
             SaveInput   = Input(&SaveFile, "Save File");
-            RespToggle  = Toggle(&ColumnLables, &RespCol);
+            RespSel     = Toggle(&ColumnLables, &RespCol);
             PIDToggle   = Toggle(&ColumnLables, &PID_Col);
             
             GetButton = Button("GetWords", [&] { 
-               if(Csv->size() == 0 || (RespCol == PID_Col))
+               if(Table->size() == 0 || (RespCol == PID_Col)) {
                   return;
+               }
                targetDisplay(readTargetWords(TargetFile));
-               Csv->at(RespCol)->header(string{"RESPONSES"});
-               Csv->at(PID_Col)->header(string{"PIDS"});
-               UniqWords = getUniqWords(Csv);
+               Table->at(RespCol)->header(string{"RESPONSES"});
+               Table->at(PID_Col)->header(string{"PIDS"});
+               
+               UniqWords = getUniqWords(Table);
+               std::sort(UniqWords.begin(), UniqWords.end());
                CorrectionMenu->OnEvent(Event::Custom);
             });
             MakeButton = Button("Make corrections", [&] {
                if(CorrectedWords.empty()) {
                   return;
                }
-               UniqWords = makeCorrections(CorrectedWords);
-               //for(int i=0; i<CorrectedWords.size(); i++) {
-               //   if(!CorrectedWords[i].empty()) {
-               //      UniqWords[i] = CorrectedWords[i];
-               //   }
-               //}
+               vector<std::pair<string, string>> corrections;
+               for(int i=0; i<CorrectedWords.size(); i++) {
+                  if(CorrectedWords[i].empty()) {
+                     continue;
+                  } else {
+                     corrections.push_back({UniqWords[i], CorrectedWords[i]});
+                  }
+               }
+               UniqWords = makeCorrections(corrections);
+               sort(UniqWords.begin(), UniqWords.end());
                CorrectionMenu->OnEvent(Event::Custom);
+            });
+            SaveButton = Button("SaveWords", [&] {
+               std::ofstream outFile(SaveFile);
+               if(!outFile) {
+                  std::cerr << "Error, could not open the save file >" << SaveFile << "< for writing!\n";
+                  return;
+               }
+               outFile << "UNIQUE WORDS: " << UniqWords.size();
+               for(string str : UniqWords) 
+                  outFile << '\n' << str;
+               outFile.close();
+               SaveFile.clear();
             });
             SerializeButton = Button("Serialize & Save", [&] {
                MyCSV* pos = serialize(); 
@@ -82,35 +104,34 @@ Component SerialMenu(MyCSV* Csv) {
                   pos->writeTable(SaveFile);
                   delete pos; //NOLINT
                }
+               SaveFile.clear();
             });
             //The `InputContainer` class will automatically resize CorrectedWords to that
             //of UniqWords upon change to UniqWords
             CorrectionMenu = InputContainer(&UniqWords, &CorrectedWords); //NOLINT
-            //CorrectedWords.clear(); //TODO: figure out why `InputContainer` fills an empty vec with a value
-            //UniqWords.clear();
             
             Add(Container::Horizontal({
                            Container::Vertical({TargetInput,
                                                 SaveInput,
-                                                RespToggle,
+                                                RespSel,
                                                 PIDToggle,
                                                 GetButton,
-                                                MakeButton,
+                                                Container::Horizontal({MakeButton,SaveButton}),
                                                 SerializeButton}),
                            CorrectionMenu}));
          }
          Element Render () override { 
             //this is an if->if instead of && so that ColumnLables does not update imediately after 
             //being set to "NA", as "NA" make Csv->size()(i.e 0) != ColumnLabels.size()(i.e 1)
-            if(Csv->size() == 0) {
+            if(Table->size() == 0) {
                if (ColumnLables[0] != "NA") {
                   ColumnLables.clear();
                   ColumnLables.push_back("NA");
                }
             }
-            else if (Csv->size() != ColumnLables.size()){
-               ColumnLables.resize(Csv->size());
-               for(int i=0; i < Csv->size(); i++)
+            else if (Table->size() != ColumnLables.size()){
+               ColumnLables.resize(Table->size());
+               for(int i=0; i < Table->size(); i++)
                   ColumnLables[i] = std::to_string(i); //NOLINT
             }
             return window(text("Serial Positioning & Corrections"), vbox(
@@ -118,9 +139,9 @@ Component SerialMenu(MyCSV* Csv) {
                           hbox(vbox(window(text("Files"), vbox(
                                            TargetInput->Render(), 
                                            SaveInput->Render())),
-                                    window(text("Response Column"), RespToggle->Render()),
+                                    window(text("Response Column"), RespSel->Render()),
                                     window(text("PID Column"),      PIDToggle->Render()),
-                                    GetButton->Render(),
+                                    hbox(GetButton->Render(), SaveButton->Render()),
                                     MakeButton->Render(), 
                                     SerializeButton->Render()),
                                window(text("Unique Words: " + std::to_string(UniqWords.size())), 

@@ -64,6 +64,6 @@ target_link_libraries(Jan-Itor
   PRIVATE Jan-Itor_lib
   PRIVATE ftxui::screen
 )
-include (cmake/options.cmake)
+include(cmake/options.cmake)
 Jan_set_option(Jan-Itor_lib)
 Jan_set_option(Jan-Itor)

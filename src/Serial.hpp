@@ -8,33 +8,37 @@
 using std::vector;
 using std::string;
 
+//TODO create a one-shot Unique words vector for loging that does
+//not change upon invocation of makeCorrections
 class Serial {
+   protected:
+      MyCSV* Table = nullptr;
    public:
       vector<string> getUniqWords(MyCSV* table = nullptr) {
-         if(table) {
+         if(!Table && !table)
+            return {};
+         if(!Table)
             Table = table;
-            parseResp();
-            uniqWords();
-         }
-         return UniqueWords;
+         parseResp();
+         return uniqWords();
       }
-      vector<string> readTargetWords(string targFile);
-      vector<string> makeCorrections(vector<string> correctedWords);
+      vector<string> readTargetWords(string targFile); //both sets and returns target words
+      vector<string> uniqWords();
+      
+      vector<string> makeCorrections(vector<std::pair<string,string>> corrections);
       MyCSV* serialize();
 
    private:
       //internals   
-      MyCSV* Table = nullptr;
       vector<vector<string>> ParsedResponses;
-      
       vector<string> TargetWords;
-      vector<string> UniqueWords;
-      vector<int>    RowsCorrected;
-      std::array<vector<string>, 2> Corrections;
+      
+      //log vectors
+      vector<string> CorrectedWords;
+      vector<string> RowsCorrected;
 
       //helpers
       void parseResp      ();
-      void uniqWords      ();
       void updateResponses();
       void writeLog(string logFile = "Serial.log");
 };

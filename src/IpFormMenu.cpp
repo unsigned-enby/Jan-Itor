@@ -25,7 +25,6 @@ Component IpFormMenu(MyCSV* Csv) {
          Component DelimDrop;
          Component ProcessButton;
          Component ColumnToggle;
-         bool showDelimDrop = false;
       public:
          Impl(MyCSV* csv) : Csv(csv) { //NOLINT
 
@@ -41,23 +40,19 @@ Component IpFormMenu(MyCSV* Csv) {
                   Checkbox("A-Z", &RR[1]),
                   Checkbox("0-9", &RR[2])
                   });
-            DelimDrop = DelimDropDown(&Delim) | size(HEIGHT, LESS_THAN, 4);
-            ColumnToggle = Toggle(&ColumnLables, &SelectedColumn);
-            //configColumnToggle();   
-            auto buttonAction = [&] {
-               setBlackSpace(BlackSpace, true);
-               setBlackSpace(BSR);
-               setRemovles(Removles, true);
-               setRemovles(RR);
-               Csv->at(SelectedColumn)->subDelim(Delim); 
+            DelimDrop     = DelimDropDown(&Delim) | size(HEIGHT, LESS_THAN, 4);
+            ColumnToggle  = Toggle(&ColumnLables  , &SelectedColumn);
+            ProcessButton = Button("Clean Column" , [&] {
+               setBlackSpace(BSR, BlackSpace);
+               setRemovles  (RR,  Removles);
+               Csv->at(SelectedColumn)->subDelim(this->Delim); 
                cleanColumn(Csv->at(SelectedColumn));
-            };
-            ProcessButton = Button("Clean Column", buttonAction);
+            });
             //navigation configuration
             Add(Container::Vertical({
                            Container::Horizontal({InputBlackSpace, RangedBlackSpace}),
                            Container::Horizontal({InputRemovles,   RangedRemovles}),
-                           Container::Horizontal({DelimDrop, ColumnToggle}),
+                           Container::Horizontal({DelimDrop,       ColumnToggle}),
                            ProcessButton})); 
          } 
          Element Render() override {
