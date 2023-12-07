@@ -26,19 +26,20 @@ vector<string> Serial::readTargetWords(string targFile) {
 //*******************************************************************
 void Serial::parseResp() {
    ParsedResponses.clear();
-
-   char subDelim = -1;
-   auto respCol  = Table->getCol("RESPONSES");
-   if(respCol->subDelim()) {
-      subDelim = *respCol->subDelim();
-   } else {
-      std::cerr << "Error, the sub delim for the response column is not set!\n";
+   if(!Responses) {
+      std::cerr << "Error: Response column is not set!\n";
       return;
    }
+   char subDelim = -1;
+   if(Responses->subDelim()) {
+      subDelim = *Responses->subDelim();
+   } else {
+      std::cerr << "Warning, the sub delim for the response column is not set!\n";
+   }
 
-   ParsedResponses.resize(respCol->size());
+   ParsedResponses.resize(Responses->size());
    auto parsedResponse = ParsedResponses.begin();
-   for(const string &response : *respCol) {
+   for(const string &response : *Responses) {
       string subItem;
       for (const char &ch : response) {
          if(ch == subDelim) {
@@ -48,6 +49,7 @@ void Serial::parseResp() {
          else {
             subItem.push_back(ch);
          }
+         std::cerr << subItem << '\n';
       }
       if(!subItem.empty()) {
          parsedResponse->push_back(subItem);
@@ -81,7 +83,7 @@ vector<string> Serial::uniqWords() {
 //TODO check for and error-log any instances of corrected-forms that are 
 //found in the `UniqueWords` vector
 vector<string> Serial::makeCorrections(vector<std::pair<string, string>> corrections) {   //NOLINT
-   if(!Table)
+   if(!Responses)
       return {};
    //for the sake of deliminating multiple invocations of `makeCorrections` 
    if(RowsCorrected.size() != 0 && CorrectedWords.size() != 0) {
@@ -119,17 +121,24 @@ vector<string> Serial::makeCorrections(vector<std::pair<string, string>> correct
 }
 //********************************************************************
 MyCSV* Serial::serialize() {
-   if(!Table) {
+   if(!Responses) {
+      std::cerr << "Error: Response column is not set!\n";
       return nullptr;
    }
    MyCSV* serialPos = new MyCSV; //NOLINT
-   serialPos->addCol(*Table->getCol("PIDS"));
+   if(!PIDs) {
+      std::cerr << "Warning, PID PIDsumn not set, creating a new empty PIDsumn in its place\n";
+      PIDs = new MyCol("PIDS");
+      PIDs->resize(Responses->size());
+      serialPos->addCol(PIDs);
+   }
+   serialPos->addCol(*PIDs);
    serialPos->addCol("Intrusions");
    for(const string &str : TargetWords)
       serialPos->addCol(str);
 
    //For each item in a ParsedResponse, check for a match against, target list.
-   //If found, assign the position of 'item' in the ParsedResponse to the target collumn
+   //If found, assign the position of 'item' in the ParsedResponse to the target PIDslumn
    int row = -1;
    for(vector<string> &resp : ParsedResponses) { //row
       row++;
@@ -160,15 +169,14 @@ MyCSV* Serial::serialize() {
 }
 //********************************************************************
 void Serial::updateResponses() {
-   auto respCol = Table->getCol("RESPONSES");
    char subDelim = -1;
-   if(respCol->subDelim()) {
-      subDelim = *respCol->subDelim();
+   if(Responses->subDelim()) {
+      subDelim = *Responses->subDelim();
    } else {
       subDelim = ' ';
    }
    auto parsedResponse = ParsedResponses.begin();
-   for(string &resp : *respCol) {
+   for(string &resp : *Responses) {
       resp.clear();
       for(const string &respWord : *parsedResponse) {
          resp += respWord + subDelim;

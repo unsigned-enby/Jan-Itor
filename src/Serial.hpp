@@ -11,24 +11,21 @@ using std::string;
 //TODO create a one-shot Unique words vector for loging that does
 //not change upon invocation of makeCorrections
 class Serial {
-   protected:
-      MyCSV* Table = nullptr;
    public:
-      vector<string> getUniqWords(MyCSV* table = nullptr) {
-         if(!Table && !table)
-            return {};
-         if(!Table)
-            Table = table;
+      vector<string> getUniqWords(MyCol* respCol, MyCol* pidCol) {
+         Responses = respCol;
+         PIDs = pidCol;
          parseResp();
          return uniqWords();
       }
       vector<string> readTargetWords(string targFile); //both sets and returns target words
-      vector<string> uniqWords();
-      
-      vector<string> makeCorrections(vector<std::pair<string,string>> corrections);
+      vector<string> makeCorrections(vector<std::pair<string,string>> corrections); //returns uniqWords()
       MyCSV* serialize();
 
    private:
+      //columns
+      MyCol* Responses = nullptr;
+      MyCol* PIDs = nullptr;
       //internals   
       vector<vector<string>> ParsedResponses;
       vector<string> TargetWords;
@@ -40,6 +37,7 @@ class Serial {
       //helpers
       void parseResp      ();
       void updateResponses();
+      vector<string> uniqWords();
       void writeLog(string logFile = "Serial.log");
 };
 #endif

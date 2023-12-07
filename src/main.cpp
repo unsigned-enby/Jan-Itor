@@ -1,9 +1,9 @@
 #include <string>
 #include <iostream>
 #include <vector>
+#include <cstdio>
 #include <ftxui/component/screen_interactive.hpp>
 #include <ftxui/component/component.hpp>
-#include <ftxui/dom/elements.hpp>
 #include "MyCSV.hpp"
 #include "MyCSVMenu.hpp"
 #include "IpFormMenu.hpp"
@@ -11,11 +11,12 @@
 using namespace ftxui;
 
 int main() {
-   MyCSV Csv;
-   auto screen    = ScreenInteractive::FitComponent();
-   auto CsvMen    = MyCSVMenu(&Csv);
-   auto IpMen     = IpFormMenu(&Csv);
-   auto SerMen    = SerialMenu(&Csv);
+   freopen("error.log", "w", stderr);
+   auto screen = ScreenInteractive::FitComponent();
+   MyCSV* Csv = new MyCSV;
+   auto CsvMen    = Make<MyCSV_Menu>(Csv);
+   auto IpMen     = Make<IpForm_Menu>(Csv);
+   auto SerMen    = Make<Serial_Menu>(Csv);
    auto container = Container::Horizontal({
                                Container::Vertical({CsvMen, IpMen}),
                                SerMen});

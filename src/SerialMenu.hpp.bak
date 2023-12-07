@@ -15,7 +15,6 @@ class Serial_Menu : public Serial, public ComponentBase {
    private:
       MyCSV* Table;
       vector<string> ColumnLables;
-      vector<string> Targets;
       bool* RespChoices;
       bool* PID_Choices;
       std::string TargetFile;
@@ -31,16 +30,19 @@ class Serial_Menu : public Serial, public ComponentBase {
       Component SaveButton;
       Component SerializeButton;
       Component CorrectionMenu;
-      Component TargDisplay = Collapsible("TargetDisplay", Renderer( [&] {
-         if(Targets.empty()) {
-            return text("");
+      
+      Element TargDisplay = text(""); //placeholder
+      void targetDisplay(vector<string> targets) {
+         if(targets.empty()) {
+            TargDisplay = text("");
+            return;
          }
          Elements targDisplay;
-         sort(Targets.begin(), Targets.end());
+         sort(targets.begin(), targets.end());
          string line;
-         line.push_back(toupper(Targets[0][0]));
+         line.push_back(toupper(targets[0][0]));
          line.append(":-");
-         for (string targ : Targets) {
+         for (string targ : targets) {
             if (toupper(targ[0]) != line[0]) {
                targDisplay.push_back(text(line));
                line.clear();
@@ -50,8 +52,8 @@ class Serial_Menu : public Serial, public ComponentBase {
             line.append(" " + targ);
          }
          targDisplay.push_back(text(line));
-         return window(text("Target Words"), vbox(targDisplay));
-      }));
+         TargDisplay = window(text("Target Words"), vbox(targDisplay));
+      }
    public:
       Serial_Menu(MyCSV* csv) : Table(csv) { //NOLINT
          ColumnLables = Table->getHeaders();
@@ -81,7 +83,7 @@ class Serial_Menu : public Serial, public ComponentBase {
                responses[i] = RespChoices[i];
             }
             respCol = Table->joinCols(responses);
-            Targets = readTargetWords(TargetFile);
+            targetDisplay(readTargetWords(TargetFile));
             UniqWords = getUniqWords(respCol, pidCol);
             std::sort(UniqWords.begin(), UniqWords.end());
             CorrectionMenu->OnEvent(Event::Character("REDRAW"));
@@ -125,8 +127,7 @@ class Serial_Menu : public Serial, public ComponentBase {
          //of UniqWords upon change to UniqWords
          CorrectionMenu = InputContainer(&UniqWords, &CorrectedWords); //NOLINT
          
-         Add(Container::Vertical({TargDisplay,
-               Container::Horizontal({
+         Add(Container::Horizontal({
                         Container::Vertical({TargetInput,
                                              SaveInput,
                                              RespSel,
@@ -134,14 +135,14 @@ class Serial_Menu : public Serial, public ComponentBase {
                                              Container::Horizontal({GetButton,SaveButton}),
                                              MakeButton,
                                              SerializeButton}),
-                        CorrectionMenu})}));
+                        CorrectionMenu}));
       }
       Element Render () override { 
          if(ColumnLables.size() != Table->size()) {
             ColumnLables = Table->getHeaders();
          }
          return window(text("Serial Positioning & Corrections"), vbox(
-                       TargDisplay->Render(),
+                       TargDisplay,
                        hbox(vbox(window(text("Files"), vbox(
                                         TargetInput->Render(), 
                                         SaveInput->Render())),

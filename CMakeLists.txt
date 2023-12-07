@@ -17,7 +17,7 @@ else()
    set(FETCHCONTENT_QUIET FALSE)
    FetchContent_Declare(ftxui
      GIT_REPOSITORY https://github.com/ArthurSonzogni/ftxui
-     GIT_TAG v4.1.1
+     GIT_TAG v5.0.0
      GIT_PROGRESS TRUE
    )
    FetchContent_GetProperties(ftxui)
@@ -32,38 +32,49 @@ endif()
 # ---- Declare library ----
 
 add_library(Jan-Itor_lib 
-  src/DelimDropDown.cpp
-  src/DelimDropDown.hpp
   src/Serial.cpp
   src/Serial.hpp
-  src/SerialMenu.cpp
-  src/SerialMenu.hpp
-  src/InputContainer.cpp
-  src/InputContainer.hpp
   src/IpForm.cpp
   src/IpForm.hpp
-  src/IpFormMenu.cpp
-  src/IpFormMenu.hpp
   src/MyCol.hpp
   src/MyCSV.cpp
   src/MyCSV.hpp
-  src/MyCSVMenu.cpp
+)
+add_library(Menu_lib
+  src/Components.hpp
+  src/TablePreview.cpp
+  src/DelimDropDown.cpp
+  src/ListSelect.cpp
+  src/InputContainer.cpp
+  src/IpFormMenu.hpp
   src/MyCSVMenu.hpp
+  src/SerialMenu.hpp
 )
 add_executable(Jan-Itor 
   src/main.cpp
 )
 
 #target_include_directories(Jan-Itor PRIVATE src)
-target_link_libraries(Jan-Itor_lib
+target_link_libraries(Menu_lib
+  PRIVATE Jan-Itor_lib
   PRIVATE ftxui::screen
   PRIVATE ftxui::dom
   PRIVATE ftxui::component
 )
-target_link_libraries(Jan-Itor 
-  PRIVATE Jan-Itor_lib
+target_link_libraries(Jan-Itor
   PRIVATE ftxui::screen
+  PRIVATE Jan-Itor_lib
+  PRIVATE Menu_lib
 )
-include(cmake/options.cmake)
-Jan_set_option(Jan-Itor_lib)
-Jan_set_option(Jan-Itor)
+target_compile_features(Jan-Itor_lib PUBLIC cxx_std_17)
+target_compile_features(Jan-Itor PUBLIC cxx_std_17)
+target_include_directories(Jan-Itor_lib SYSTEM INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
+target_include_directories(Jan-Itor     SYSTEM INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
+target_include_directories(Jan-Itor_lib
+   PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
+   PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/src>
+)
+target_include_directories(Jan-Itor
+   PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
+   PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/src>
+)
