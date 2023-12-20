@@ -5,13 +5,15 @@
 #include "MyCSV.hpp"
 #include "Components.hpp"
 using namespace ftxui;
+using std::vector;
+using std::string;
 class MyCSV_Menu : public ComponentBase {
    private:
       MyCSV* Csv;
-      std::string InFile;
-      std::string OutFile;
+      string InFile;
+      string OutFile;
       char Delim = '\0';
-      std::vector<std::string> Quotes {"\"", "'"};
+      vector<string> Quotes {"\"", "'"};
       int SelectedQuote = 0;   
 
       bool ShowTable = false;
@@ -48,7 +50,7 @@ class MyCSV_Menu : public ComponentBase {
          return window(text("CSV Menu"),
                        vbox(hbox(text("Column count: " + std::to_string(Csv->size())), 
                                  text(" "), filler(),
-                                 text("Row Count: " + std::to_string(Csv->rowCount()))),
+                                 text("Row Count: "    + std::to_string(Csv->rowCount()))),
                             hbox(InputFile->Render(),  ReadButton->Render()),
                             hbox(OutputFile->Render(), SaveButton->Render()),
                             hbox(DelimDrop->Render(), filler(), 

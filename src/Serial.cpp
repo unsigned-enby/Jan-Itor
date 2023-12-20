@@ -4,15 +4,15 @@
 ///   - make it an option to include the serial position of all (unique) words, not just the targets
 ///   - set target words function
 ///   - maybe: replace the `ParsedResponses` nested-vector with a `MyCSV` object
-vector<string> Serial::readTargetWords(string targFile) {
+void Serial::readTargetWords(string targFile) {
    TargetWords.clear();
    if(targFile.empty())
-      return TargetWords;
+      return;
 
    std::ifstream infile(targFile);
    if(infile.fail()) {
       std::cerr << "The target word file: " << targFile << " did not open properly!\n";
-      return TargetWords;
+      return;
    }
    string temp;
    getline(infile,temp);
@@ -21,25 +21,23 @@ vector<string> Serial::readTargetWords(string targFile) {
       getline(infile,temp);
    }
    infile.close();
-   return TargetWords;
 }
 //*******************************************************************
 void Serial::parseResp() {
    ParsedResponses.clear();
-   if(!Responses) {
+   char subDelim = -1;
+   if(!RESPs) {
       std::cerr << "Error: Response column is not set!\n";
       return;
-   }
-   char subDelim = -1;
-   if(Responses->subDelim()) {
-      subDelim = *Responses->subDelim();
-   } else {
+   } else if(!RESPs->subDelim()) {
       std::cerr << "Warning, the sub delim for the response column is not set!\n";
+   } else {
+      subDelim = *RESPs->subDelim();
    }
-
-   ParsedResponses.resize(Responses->size());
+   
+   ParsedResponses.resize(RESPs->size());
    auto parsedResponse = ParsedResponses.begin();
-   for(const string &response : *Responses) {
+   for(const string &response : *RESPs) {
       string subItem;
       for (const char &ch : response) {
          if(ch == subDelim) {
@@ -49,7 +47,6 @@ void Serial::parseResp() {
          else {
             subItem.push_back(ch);
          }
-         std::cerr << subItem << '\n';
       }
       if(!subItem.empty()) {
          parsedResponse->push_back(subItem);
@@ -82,9 +79,7 @@ vector<string> Serial::uniqWords() {
 }
 //TODO check for and error-log any instances of corrected-forms that are 
 //found in the `UniqueWords` vector
-vector<string> Serial::makeCorrections(vector<std::pair<string, string>> corrections) {   //NOLINT
-   if(!Responses)
-      return {};
+void Serial::makeCorrections_(vector<std::pair<string, string>> corrections) {   //NOLINT
    //for the sake of deliminating multiple invocations of `makeCorrections` 
    if(RowsCorrected.size() != 0 && CorrectedWords.size() != 0) {
       RowsCorrected.push_back("");
@@ -116,24 +111,21 @@ vector<string> Serial::makeCorrections(vector<std::pair<string, string>> correct
    for(const auto &correction : corrections) {
       CorrectedWords.push_back(correction.first + ',' + correction.second);
    }
-   updateResponses();
-   return uniqWords();
 }
 //********************************************************************
 MyCSV* Serial::serialize() {
-   if(!Responses) {
+   if(!RESPs) {
       std::cerr << "Error: Response column is not set!\n";
       return nullptr;
    }
-   MyCSV* serialPos = new MyCSV; //NOLINT
-   if(!PIDs) {
-      std::cerr << "Warning, PID PIDsumn not set, creating a new empty PIDsumn in its place\n";
-      PIDs = new MyCol("PIDS");
-      PIDs->resize(Responses->size());
-      serialPos->addCol(PIDs);
+   MyCSV* serialPos = new MyCSV;
+   if(PIDs) {
+      serialPos->addCol(*PIDs);
+      serialPos->addCol("Intrusions");
+   } else { 
+      std::cerr << "Warning, PID column is not set!\n";
+      serialPos->addCol("Intrusions");
    }
-   serialPos->addCol(*PIDs);
-   serialPos->addCol("Intrusions");
    for(const string &str : TargetWords)
       serialPos->addCol(str);
 
@@ -170,13 +162,13 @@ MyCSV* Serial::serialize() {
 //********************************************************************
 void Serial::updateResponses() {
    char subDelim = -1;
-   if(Responses->subDelim()) {
-      subDelim = *Responses->subDelim();
+   if(RESPs->subDelim()) {
+      subDelim = *RESPs->subDelim();
    } else {
       subDelim = ' ';
    }
    auto parsedResponse = ParsedResponses.begin();
-   for(string &resp : *Responses) {
+   for(string &resp : *RESPs) {
       resp.clear();
       for(const string &respWord : *parsedResponse) {
          resp += respWord + subDelim;

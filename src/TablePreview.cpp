@@ -1,46 +1,50 @@
 #include "Components.hpp"
 #include <ftxui/dom/table.hpp>
-#include <ftxui/component/component.hpp>
-#include <ftxui/component/screen_interactive.hpp>
 using namespace ftxui;
-Component TablePreview(MyCSV* tab) {
+Component TablePreview(MyCSV* table) {
    class Impl : public ComponentBase {
       private:
-         MyCSV* Tab;
-         int y = 0;
-         int x = 0;
-         bool show = false;
+         MyCSV* Table;
+         bool Show = false;
+         int Y = 0;
+         int X = 0;
+         Dimensions dim;
          Element savedElement;
+         
          Component ShowButton;
          Component TableRenderer;
          Component TableWindow;
-         void drawTable() {
-            if(Tab->size() == 0) {
+         void makeTable() {
+            if(Table->size() == 0) {
                savedElement = text("");
                return;
             }
-            auto table = Table(Tab->recVec());
-            auto tableSelection = table.SelectAll();
-            tableSelection.Separator(DASHED);
-            tableSelection.DecorateAlternateRow(bgcolor(Color::DeepSkyBlue3Bis));
+            auto table = ftxui::Table(Table->recVec(true, true));
+            table.SelectColumns(0, -1).Separator();
+            table.SelectRows(0, -1).Separator(HEAVY);
             savedElement = table.Render();
+            savedElement->ComputeRequirement();
+            dim.dimx = savedElement->requirement().min_x;
+            dim.dimy = savedElement->requirement().min_y;
          }
       public:
-         Impl(MyCSV* tab) : Tab(tab) {
-            drawTable();
-            ShowButton = Button("Preview Table", [&] { drawTable() ; show = true; }) | flex_shrink;
-            TableRenderer = Renderer([&] { 
-                  return  savedElement |  vscroll_indicator | focusPosition(x, y) | frame; });
+         Impl(MyCSV* table) : Table(table) {
+            makeTable();
+            ShowButton = Button("Preview Table", [&] { makeTable() ; Show = true; });
+            TableRenderer = Renderer([&] { return  savedElement | 
+                                                   vscroll_indicator | 
+                                                   focusPosition(X, Y) | 
+                                                   frame; });
             TableWindow = Window({
                   .inner = TableRenderer,
-                  .title = "Table Preview",
-                  .width = 2000,
+                  .title = "Table Preview: Use h/j/k/l (+Shift) to navigate. Press q or Esc to exit.",
+                  .width = 2000, //arbitrarily large sizes
                   .height = 2000,
                   });
-            Add(Modal(ShowButton, TableWindow, &show));
+            Add(Modal(ShowButton, TableWindow, &Show));
          }
          Element Render() override {
-            if(!show) {
+            if(!Show) {
                return vbox(ShowButton->Render());
             } else {
                TableWindow->TakeFocus();
@@ -55,42 +59,38 @@ Component TablePreview(MyCSV* tab) {
             if(event.is_character()) {
                switch(event.character()[0]) {
                   case 'j':
-                     y+=1;
+                     Y<dim.dimy    ? Y+=1  : Y=dim.dimy;
                      return true;
                   case 'J':
-                     y += 10;
+                     Y<dim.dimy-10 ? Y+=10 : Y=dim.dimy;
                      return true;
                   case 'k':
-                     if(y>0)
-                        y -= 1;
+                     Y>0  ? Y-=1  : Y=0;
                      return true;
                   case 'K':
-                     if( y > 10)
-                        y -= 10;
+                     Y>10 ? Y-=10 : Y=0;
                      return true;
                   case 'l':
-                     x += 1;
+                     X<dim.dimx    ? X+=1  : X=dim.dimx;
                      return true;
                   case 'L':
-                     x += 10;
+                     X<dim.dimx-10 ? X+=10 : X=dim.dimx;
                      return true;
                   case 'h':
-                     if(x>0)
-                        x -= 1;
+                     X>0  ? X-=1  : X=0;
                      return true;
                   case 'H':
-                     if(x > 10)
-                        x -= 10;
+                     X>10 ? X-=10 : X=0;
                      return true;
                   case 'q':
-                     show = false;
+                     Show = false;
                      ShowButton->TakeFocus();
                      return true;
                   default:
                      return false;
                }
             } else if(event == Event::Escape) {
-               show = false;
+               Show = false;
                ShowButton->TakeFocus();
                return true;
             }
@@ -98,5 +98,5 @@ Component TablePreview(MyCSV* tab) {
          }
          bool Focusable() const override { return true; }
    };
-   return Make<Impl>(tab);
+   return Make<Impl>(table);
 }

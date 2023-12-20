@@ -44,7 +44,7 @@ add_library(Menu_lib
   src/Components.hpp
   src/TablePreview.cpp
   src/DelimDropDown.cpp
-  src/ListSelect.cpp
+  src/ListToggle.cpp
   src/InputContainer.cpp
   src/IpFormMenu.hpp
   src/MyCSVMenu.hpp

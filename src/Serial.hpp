@@ -11,21 +11,32 @@ using std::string;
 //TODO create a one-shot Unique words vector for loging that does
 //not change upon invocation of makeCorrections
 class Serial {
+   protected:
+      //columns
+      MyCol* RESPs = nullptr;
+      MyCol* PIDs  = nullptr;
    public:
-      vector<string> getUniqWords(MyCol* respCol, MyCol* pidCol) {
-         Responses = respCol;
-         PIDs = pidCol;
+      vector<string> init(string targFile) {
+         this->clear();
+         readTargetWords(targFile);
          parseResp();
          return uniqWords();
       }
-      vector<string> readTargetWords(string targFile); //both sets and returns target words
-      vector<string> makeCorrections(vector<std::pair<string,string>> corrections); //returns uniqWords()
+      vector<string> makeCorrections(vector<std::pair<string,string>> corrections) {
+         if(!RESPs)
+            return {};
+         makeCorrections_(std::move(corrections));
+         updateResponses();
+         return uniqWords();
+      }
+      //void setColumns(MyCol* responses, MyCol* pids) {
+      //   this->clear();
+      //   RESPs = responses;
+      //   PIDs  = pids;
+      //}
+      vector<string> getTargetWords() { return TargetWords; }
       MyCSV* serialize();
-
    private:
-      //columns
-      MyCol* Responses = nullptr;
-      MyCol* PIDs = nullptr;
       //internals   
       vector<vector<string>> ParsedResponses;
       vector<string> TargetWords;
@@ -35,9 +46,18 @@ class Serial {
       vector<string> RowsCorrected;
 
       //helpers
+      void clear() {
+         TargetWords.clear();
+         ParsedResponses.clear();
+         CorrectedWords.clear();
+         RowsCorrected.clear();
+      }
+
+      void readTargetWords(string targFile);
       void parseResp      ();
       void updateResponses();
       vector<string> uniqWords();
+      void makeCorrections_(vector<std::pair<string,string>> corrections);
       void writeLog(string logFile = "Serial.log");
 };
 #endif

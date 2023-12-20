@@ -17,7 +17,7 @@ class IpForm_Menu : public IpForm, public ComponentBase {
       std::array<bool,3> BSR {false, false, false}; //BlackSpaceRanges
       std::array<bool,3> RR  {false, false, false}; //RemovleRanges
       
-      bool* SelectedColumns;
+      vector<bool> SelectedColumns;
       vector<string> ColumnLables;
    
       Component InputBlackSpace;
@@ -71,7 +71,7 @@ class IpForm_Menu : public IpForm, public ComponentBase {
             }
             Csv->joinCols(selected);
          });
-         ColumnToggle = ListToggle("Columns", &ColumnLables, &SelectedColumns) | size(HEIGHT, LESS_THAN, 6);
+         ColumnToggle = ListToggle(&ColumnLables, &SelectedColumns) | size(HEIGHT, LESS_THAN, 6);
          //navigation configuration
          Add(Container::Vertical({
                         Container::Horizontal({InputBlackSpace, RangedBlackSpace}),

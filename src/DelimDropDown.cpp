@@ -21,7 +21,7 @@ class Impl : public ComponentBase {
          RadioboxOption Rbo;
          Rbo.selected = &DelimIdx;
          Rbo.entries = &DelimChoices;
-         Rbo.on_change = [&] { 
+         Rbo.on_change = [&] {
             Label = DelimChoices[DelimIdx];
             switch(DelimIdx) {
                case 0:
@@ -42,7 +42,7 @@ class Impl : public ComponentBase {
             }
          };
          radioBox = Radiobox(Rbo);
-         Maybe(radioBox, &Show);
+         Add(radioBox);
       }
       Element Render() override {
          //"▶" "▼"
@@ -59,22 +59,26 @@ class Impl : public ComponentBase {
          return vbox(window(text(Title), retElem));
       }
       bool OnEvent(Event event) override {
-         bool retBool = false;
-         if(!Focused()) {
-            retBool = false;
-         } else if(Show && radioBox->OnEvent(event)) {
-            retBool = true;
+         if(!Focused() && !ActiveChild()) {
+            return false;
          }
-         if(event == Event::Return) {
+         if(event == Event::Character(' ') || event == Event::Return) {
+            if(Show)
+               radioBox->OnEvent(event);
             Show = !Show;
-            retBool = true;
+            return true;
+         } else if(!Show) {
+            return false;
          }
-         return retBool;
+         if(ActiveChild()->OnEvent(event)) {
+            return true;
+         }
+         return true; //make event handling greedy iff !Show
       }
       bool Focusable() const override { return true; }
 };
-
    return Make<Impl>(delim, title);
 }
 
 //"▶" "▼"
+

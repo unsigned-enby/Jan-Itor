@@ -14,18 +14,18 @@ using std::string;
 class Serial_Menu : public Serial, public ComponentBase {
    private:
       MyCSV* Table;
+      string TargetFile;
+      string SaveFile;
       vector<string> ColumnLables;
       vector<string> Targets;
-      bool* RespChoices;
-      bool* PID_Choices;
-      std::string TargetFile;
-      std::string SaveFile;
       vector<string> UniqWords;
       vector<string> CorrectedWords;
+      vector<bool>   RESP_Choices;
+      vector<bool>   PID_Choices;
       Component TargetInput;
       Component SaveInput;
-      Component RespSel;
-      Component PIDSel;
+      Component RESP_Toggle;
+      Component PID_Toggle;
       Component GetButton;
       Component MakeButton;
       Component SaveButton;
@@ -55,34 +55,33 @@ class Serial_Menu : public Serial, public ComponentBase {
    public:
       Serial_Menu(MyCSV* csv) : Table(csv) { //NOLINT
          ColumnLables = Table->getHeaders();
-         TargetInput = Input(&TargetFile, "Target File");
-         SaveInput   = Input(&SaveFile, "Save File");
-         RespSel     = ListToggle("Responses", &ColumnLables, &RespChoices) | size(HEIGHT, LESS_THAN, 6);
-         PIDSel      = ListToggle("PID",       &ColumnLables, &PID_Choices) | size(HEIGHT, LESS_THAN, 6);
+         TargetInput  = Input(&TargetFile, "Target File");
+         SaveInput    = Input(&SaveFile,   "Save File");
+         RESP_Toggle  = ListToggle(&ColumnLables, &RESP_Choices)   | size(HEIGHT, LESS_THAN, 6);
+         PID_Toggle   = ListToggle(&ColumnLables, &PID_Choices, 1) | size(HEIGHT, LESS_THAN, 6);
+         //The `InputContainer` class will automatically resize CorrectedWords to that
+         //of UniqWords upon change to UniqWords
+         CorrectionMenu = InputContainer(&UniqWords, &CorrectedWords); //NOLINT
          
+         ///Buttons_begin
          GetButton = Button("GetWords", [&] { 
-            MyCol* pidCol  = nullptr;
-            MyCol* respCol = nullptr;
-            vector<bool> responses(Table->size(), false);
             for(int i=0; i<Table->size(); i++) {
                if(PID_Choices[i]) {
-                  if(pidCol) {
-                     std::cerr << "Warning, more than one pid column selected "
-                               << "using the first one found.\n";
-                  } else if(responses[i]) {
+                  if(RESP_Choices[i]) {
                      std::cerr << "Warning, a column is selected as both a pid col "
                                << "and a response col. PID will take precedence.\n";
-                     responses[i] = false;
+                     RESP_Choices[i] = false;
                   } else {
-                     pidCol = Table->at(i);
-                     continue;
+                     PIDs = Table->at(i);
                   }
+                  break;
                }
-               responses[i] = RespChoices[i];
             }
-            respCol = Table->joinCols(responses);
-            Targets = readTargetWords(TargetFile);
-            UniqWords = getUniqWords(respCol, pidCol);
+            RESPs = Table->joinCols(RESP_Choices);
+            UniqWords = init(TargetFile);
+            TargetFile.clear();
+            
+            Targets = getTargetWords();
             std::sort(UniqWords.begin(), UniqWords.end());
             CorrectionMenu->OnEvent(Event::Character("REDRAW"));
          });
@@ -121,20 +120,17 @@ class Serial_Menu : public Serial, public ComponentBase {
             }
             SaveFile.clear();
          });
-         //The `InputContainer` class will automatically resize CorrectedWords to that
-         //of UniqWords upon change to UniqWords
-         CorrectionMenu = InputContainer(&UniqWords, &CorrectedWords); //NOLINT
+         ///Buttons_end 
          
          Add(Container::Vertical({TargDisplay,
-               Container::Horizontal({
-                        Container::Vertical({TargetInput,
-                                             SaveInput,
-                                             RespSel,
-                                             PIDSel,
-                                             Container::Horizontal({GetButton,SaveButton}),
-                                             MakeButton,
-                                             SerializeButton}),
-                        CorrectionMenu})}));
+                Container::Horizontal({
+                   Container::Vertical({TargetInput,
+                                        SaveInput,
+                                        Container::Horizontal({RESP_Toggle, PID_Toggle}),
+                                        Container::Horizontal({GetButton,SaveButton}),
+                                        MakeButton,
+                                        SerializeButton}),
+                   CorrectionMenu})}));
       }
       Element Render () override { 
          if(ColumnLables.size() != Table->size()) {
@@ -145,13 +141,13 @@ class Serial_Menu : public Serial, public ComponentBase {
                        hbox(vbox(window(text("Files"), vbox(
                                         TargetInput->Render(), 
                                         SaveInput->Render())),
-                                 window(text("Response Column"), RespSel->Render()),
-                                 window(text("PID Column"),      PIDSel->Render()),
-                                 hbox(GetButton->Render(), SaveButton->Render()),
+                                 hbox(vbox(window(text("Resp Col"), RESP_Toggle->Render())),
+                                      vbox(window(text("PID Col"),  PID_Toggle->Render()))),
+                                 hbox(GetButton->Render(), filler(), SaveButton->Render()),
                                  MakeButton->Render(), 
                                  SerializeButton->Render()),
                             window(text("Unique Words: " + std::to_string(UniqWords.size())), 
-                                 CorrectionMenu->Render()) | size(HEIGHT, EQUAL, 19))
+                                   CorrectionMenu->Render()) | size(HEIGHT, EQUAL, 15))
                        ));
       }         
       bool Focusable() const override { return true; };
