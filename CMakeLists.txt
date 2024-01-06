@@ -7,6 +7,7 @@ project(Jan-Itor
 )
 
 option(SYSTEM_FTXUI "Use the system's ftxui libraries" OFF)
+option(STATIC_BUILD "Use statically linked libaries" OFF)
 
 if(SYSTEM_FTXUI)
    find_package(ftxui)
@@ -26,9 +27,9 @@ else()
      add_subdirectory(${ftxui_SOURCE_DIR} ${ftxui_BINARY_DIR} EXCLUDE_FROM_ALL)
    endif()
 endif()
-
-#Project
-
+if(STATIC_BUILD)
+   set(CMAKE_CXX_FLAGS "-static")
+endif()
 # ---- Declare library ----
 
 add_library(Jan-Itor_lib 
@@ -66,10 +67,13 @@ target_link_libraries(Jan-Itor
   PRIVATE Jan-Itor_lib
   PRIVATE Menu_lib
 )
+
 target_compile_features(Jan-Itor_lib PUBLIC cxx_std_17)
 target_compile_features(Jan-Itor PUBLIC cxx_std_17)
+
 target_include_directories(Jan-Itor_lib SYSTEM INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
 target_include_directories(Jan-Itor     SYSTEM INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
+
 target_include_directories(Jan-Itor_lib
    PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
    PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/src>

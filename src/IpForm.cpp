@@ -21,51 +21,46 @@ string IpForm::charRange(std::array<bool, 3> ranges) { //NOLINT
    }  
    return retString;
 } 
-void IpForm::setBlackSpace(string blackSpace, bool clear) {
+
+void IpForm::setBlackSpace(string chars, bool clear) {
    if(clear)
       BlackSpace.clear();
-   BlackSpace += blackSpace;
+   BlackSpace += chars;
 }
 void IpForm::setBlackSpace(std::array<bool, 3> ranges, bool clear) {
    if(clear)
       BlackSpace.clear();
    BlackSpace += charRange(ranges);
 }
-void IpForm::setBlackSpace(std::array<bool, 3> ranges, string blackSpace) {
-   BlackSpace.clear();
-   BlackSpace += blackSpace;
-   BlackSpace += charRange(ranges);
+
+void IpForm::setRemovles(string chars, bool clear) {
+   if(clear)
+      Removles.clear();
+   Removles += chars;
 }
 void IpForm::setRemovles(std::array<bool, 3> ranges, bool clear) {
    if(clear)
       Removles.clear();
    Removles += charRange(ranges);
 }
-void IpForm::setRemovles(string removles, bool clear) {
-   if(clear)
-      Removles.clear();
-   Removles += removles;
-}
-void IpForm::setRemovles(std::array<bool, 3> ranges, string removles) {
-   Removles.clear();
-   Removles += removles;
-   Removles += charRange(ranges);
-}
 //********************************************************************
 void IpForm::removeChars(MyCol* col) {
-   for(string &row : *col) {
-      for(int i=0; i<row.size() ;i++) { //NOLINT
-         for(char ch : Removles) {
+   for(string &row : *col) 
+      for(int i=0; i<row.size() ;i++)
+         for(char ch : Removles)
             if(row[i]==ch) {
-               row.erase(i,1);
-               i--;
+               row.erase(i--,1);
                break;
-}  }  }  }  }
+            }
+}
 void IpForm::cleanColumn(MyCol* col) {
+   
    removeChars(col); 
+   
    //first checks wether the given char is part of the BlackSpace vec
    //then, if it is not BlackSpace, it checks wether the pos in the current
    //string is imediately after a BlackSpace char (for the sake of sub-delims)
+    
    for(string &row : *col) {
       //TODO: make charId enum-based
       int i = 0;

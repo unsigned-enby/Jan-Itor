@@ -47,21 +47,21 @@ class IpForm_Menu : public IpForm, public ComponentBase {
                });
          DelimDrop     = DelimDropDown(&Delim, "Sub-Delim") | size(HEIGHT, LESS_THAN, 6);
          ProcessButton = Button("Clean" , [&] {
-            setBlackSpace(BSR, BlackSpace);
-            setRemovles  (RR,  Removles);
-            for(int i=0; i<ColumnLables.size(); i++) {
+            setBlackSpace(BlackSpace, true);
+            setBlackSpace(BSR, false); 
+            setRemovles  (Removles,   true);
+            setRemovles  (RR,  false);
+            for(int i=0; i<ColumnLables.size(); i++)
                if(SelectedColumns[i]) {
                   Csv->at(i)->subDelim(this->Delim); 
                   cleanColumn(Csv->at(i));
                }
-            }
          });
          SplitButton = Button("Split", [&] {
-            for(int i=Csv->size()-1; i>=0; i--) {
+            for(int i=Csv->size()-1; i>=0; i--)
                if(SelectedColumns[i]) {
                   Csv->splitCol(i);
                }
-            }
          });
          JoinButton = Button("Join", [&] {
             vector<bool> selected(Csv->size(), false);

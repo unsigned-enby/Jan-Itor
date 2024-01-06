@@ -6,15 +6,16 @@
 #include "MyCol.hpp"
 using std::vector;
 using std::string;
+/// IpForm uses strings as opposed to vector<char> as the chars passed to setBlackSpace &
+/// setRemovles will be in string form, and for the sake of more easily appending the the 
+/// member variables BlackSpace and Removles
 class IpForm {
    public:
-      void setBlackSpace (string blackSpace,          bool clear = false);
-      void setBlackSpace (std::array<bool, 3> ranges, bool clear = false);
-      void setBlackSpace (std::array<bool, 3> ranges, string removles);
+      void setBlackSpace (string chars,               bool clear);
+      void setBlackSpace (std::array<bool, 3> ranges, bool clear);
       
-      void setRemovles   (string removles,            bool clear = false);
-      void setRemovles   (std::array<bool, 3> ranges, bool clear = false);
-      void setRemovles   (std::array<bool, 3> ranges, string removles);
+      void setRemovles   (string chars,               bool clear);
+      void setRemovles   (std::array<bool, 3> ranges, bool clear);
       
       string getBlackSpace () const {return BlackSpace;};
       string getRemovles   () const {return Removles;  };
@@ -24,6 +25,6 @@ class IpForm {
       string BlackSpace;
       string Removles;
       string charRange(std::array<bool, 3> ranges); 
-      void removeChars(MyCol* col);
+      void   removeChars(MyCol* col);
 };
 #endif

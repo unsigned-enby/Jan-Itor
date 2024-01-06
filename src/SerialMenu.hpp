@@ -15,7 +15,7 @@ class Serial_Menu : public Serial, public ComponentBase {
    private:
       MyCSV* Table;
       string TargetFile;
-      string SaveFile;
+      string OutFile;
       vector<string> ColumnLables;
       vector<string> Targets;
       vector<string> UniqWords;
@@ -26,10 +26,10 @@ class Serial_Menu : public Serial, public ComponentBase {
       Component SaveInput;
       Component RESP_Toggle;
       Component PID_Toggle;
-      Component GetButton;
-      Component MakeButton;
-      Component SaveButton;
-      Component SerializeButton;
+      Component Get;
+      Component Make;
+      Component Save;
+      Component Serialize;
       Component CorrectionMenu;
       Component TargDisplay = Collapsible("TargetDisplay", Renderer( [&] {
          if(Targets.empty()) {
@@ -56,7 +56,7 @@ class Serial_Menu : public Serial, public ComponentBase {
       Serial_Menu(MyCSV* csv) : Table(csv) { //NOLINT
          ColumnLables = Table->getHeaders();
          TargetInput  = Input(&TargetFile, "Target File");
-         SaveInput    = Input(&SaveFile,   "Save File");
+         SaveInput    = Input(&OutFile,   "Output File");
          RESP_Toggle  = ListToggle(&ColumnLables, &RESP_Choices)   | size(HEIGHT, LESS_THAN, 6);
          PID_Toggle   = ListToggle(&ColumnLables, &PID_Choices, 1) | size(HEIGHT, LESS_THAN, 6);
          //The `InputContainer` class will automatically resize CorrectedWords to that
@@ -64,7 +64,7 @@ class Serial_Menu : public Serial, public ComponentBase {
          CorrectionMenu = InputContainer(&UniqWords, &CorrectedWords); //NOLINT
          
          ///Buttons_begin
-         GetButton = Button("GetWords", [&] { 
+         Get = Button("GetWords", [&] { 
             for(int i=0; i<Table->size(); i++) {
                if(PID_Choices[i]) {
                   if(RESP_Choices[i]) {
@@ -79,13 +79,13 @@ class Serial_Menu : public Serial, public ComponentBase {
             }
             RESPs = Table->joinCols(RESP_Choices);
             UniqWords = init(TargetFile);
-            TargetFile.clear();
+            //TargetFile.clear();
             
             Targets = getTargetWords();
             std::sort(UniqWords.begin(), UniqWords.end());
             CorrectionMenu->OnEvent(Event::Character("REDRAW"));
          });
-         MakeButton = Button("Make corrections", [&] {
+         Make = Button("Make corrections", [&] {
             if(CorrectedWords.empty()) {
                return;
             }
@@ -101,24 +101,24 @@ class Serial_Menu : public Serial, public ComponentBase {
             sort(UniqWords.begin(), UniqWords.end());
             CorrectionMenu->OnEvent(Event::Character("REDRAW"));
          });
-         SaveButton = Button("SaveWords", [&] {
-            std::ofstream outFile(SaveFile);
+         Save = Button("SaveWords", [&] {
+            std::ofstream outFile(OutFile);
             if(!outFile) {
-               std::cerr << "Error, could not open the save file >" << SaveFile << "< for writing!\n";
+               std::cerr << "Error, could not open the save file >" << OutFile << "< for writing!\n";
                return;
             }
             for(string str : UniqWords) 
                outFile << '\n' << str;
             outFile.close();
-            SaveFile.clear();
+            OutFile.clear();
          });
-         SerializeButton = Button("Serialize & Save", [&] {
+         Serialize = Button("Serialize & Save", [&] {
             MyCSV* pos = serialize(); 
             if(pos) {
-               pos->writeTable(SaveFile);
+               pos->writeTable(OutFile);
                delete pos; //NOLINT
             }
-            SaveFile.clear();
+            OutFile.clear();
          });
          ///Buttons_end 
          
@@ -127,9 +127,9 @@ class Serial_Menu : public Serial, public ComponentBase {
                    Container::Vertical({TargetInput,
                                         SaveInput,
                                         Container::Horizontal({RESP_Toggle, PID_Toggle}),
-                                        Container::Horizontal({GetButton,SaveButton}),
-                                        MakeButton,
-                                        SerializeButton}),
+                                        Container::Horizontal({Get,Save}),
+                                        Make,
+                                        Serialize}),
                    CorrectionMenu})}));
       }
       Element Render () override { 
@@ -143,9 +143,9 @@ class Serial_Menu : public Serial, public ComponentBase {
                                         SaveInput->Render())),
                                  hbox(vbox(window(text("Resp Col"), RESP_Toggle->Render())),
                                       vbox(window(text("PID Col"),  PID_Toggle->Render()))),
-                                 hbox(GetButton->Render(), filler(), SaveButton->Render()),
-                                 MakeButton->Render(), 
-                                 SerializeButton->Render()),
+                                 hbox(Get->Render(), filler(), Save->Render()),
+                                 Make->Render(), 
+                                 Serialize->Render()),
                             window(text("Unique Words: " + std::to_string(UniqWords.size())), 
                                    CorrectionMenu->Render()) | size(HEIGHT, EQUAL, 15))
                        ));

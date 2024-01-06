@@ -37,7 +37,8 @@ class MyCSV_Menu : public ComponentBase {
                                                 Csv->readTable(InFile);});
          SaveButton  = Button("Save File", [&] {Csv->setDelim(Delim);
                                                 Csv->setQuote(Quotes[SelectedQuote][0]); //not currently used
-                                                Csv->writeTable(OutFile);}); 
+                                                Csv->writeTable(OutFile);
+                                                OutFile.clear();}); 
          //navigation configuration
          Add(Container::Vertical({
                   Container::Horizontal({InputFile, ReadButton}),
