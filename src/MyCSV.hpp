@@ -27,32 +27,32 @@ class MyCSV {
       };
       ///meta/calculated info
       void prettyPrintMetaData () const;
-      uint size     () const {return Table.size();}; //column count
-      uint rowCount ();
+      unsigned int size     () const {return Table.size();}; //column count
+      unsigned int rowCount ();
       
       ///table I/O & parsing functions
       void readTable  (string inFile  = "NA");
       void writeTable (string outFile = "NA");
      
       ///element access and iterators
-      MyCol* at(uint i);
-      MyCol* operator[](uint i);
+      MyCol* at(unsigned int i);
+      MyCol* operator[](unsigned int i);
       MyCol* getCol(string header);
-      const vector<string*> getRow(uint row);
+      const vector<string*> getRow(unsigned int row);
       vector<MyCol*>::iterator begin() { return Table.begin(); }
       vector<MyCol*>::iterator end()   { return Table.end();   }
-      void insert(uint pos, MyCSV &columns);
+      void insert(unsigned int pos, MyCSV &columns);
       vector<vector<string>> recVec(bool normal, bool includeHeaders); //record vector
      
       ///element destruction/release
-      void free(uint pos, int size);
+      void free(unsigned int pos, int size);
       
       ///table-maninpulation
       void setHeaders(bool headers);
       void setHeaders(vector<string> headers);
       vector<string> getHeaders(); 
-      void splitCol(uint col);
-      MyCol* joinCols(uint first, uint last);
+      void splitCol(unsigned int col);
+      MyCol* joinCols(unsigned int first, unsigned int last);
       MyCol* joinCols(vector<bool> cols);
       void resize(int cols, int rows = -1); //number of collumns/row count
       void addCol(string header = "NA");

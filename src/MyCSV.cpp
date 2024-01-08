@@ -15,19 +15,19 @@ void MyCSV::prettyPrintMetaData() const {
    cerr << "Output File : "  << OutFile          << "\n";
    cerr << "Headers     : "  << Headers          << "\n";
    cerr << "Column headers:\n";
-   for(uint i=0; i<this->size() ; i++) {
+   for(unsigned int i=0; i<this->size() ; i++) {
          cerr << "   [" << i << "]=>" << Table[i]->header() << "<\n";
    }
    cerr << "RowCounts:\n";
-   for(uint i=0; i<this->size() ; i++) {
+   for(unsigned int i=0; i<this->size() ; i++) {
       cerr << "   [" << i << "]=" << Table[i]->size() << '\n';
    }
 }
-uint MyCSV::rowCount() {
+unsigned int MyCSV::rowCount() {
    if(this->size() <= 0)
       return 0;
    else {
-      uint rc = at(0)->size();
+      unsigned int rc = at(0)->size();
       for(MyCol* col : Table) { //sanity check
          if(col->size() != rc) {
             cerr << "Error, column sizes are not identical!\n";
@@ -46,51 +46,45 @@ void MyCSV::readTable(string inFile) {
       return;
    }
    char* buffer = nullptr;
-   std::fstream infile(InFile);
+  
+   //read file into memory
+   std::ifstream infile(InFile, std::ios::binary);
    if (!infile) {
       cerr << "ERROR OPENING FILE, ";
       cerr << InFile  << " ";
       cerr << "EXITING NOW\n";
       exit(-1); //NOLINT
    }
-   //normalize the end of the istream object
-   infile.seekg(-1, std::ios::end);
-   while(charClass(infile.peek()) == RDELIM ||
-         charClass(infile.peek()) == DELIM  ||
-         infile.peek() == EOF) { infile.seekg(-1, std::ios::cur); }
-   //get its (new) size
-   infile.seekg(1, std::ios::cur);
-   uint bufferSize = infile.tellg();
+   infile.seekg(0, std::ios::end);
+   unsigned int bufferSize = infile.tellg();
    infile.seekg(0, std::ios::beg);
-
-   //read istream object into char buffer
-   buffer = new char[bufferSize+1]; //Plus 1 for end-stop (EOT) char
-   buffer[bufferSize] = 4;         //ascii character code for 'end of transmission'
+   buffer = new char[bufferSize+1]; //Plus 1 for end-stop char
+   for(int i=0; i<=bufferSize; i++)
+      buffer[i] = 0;
    infile.read(buffer, bufferSize);
    infile.close();
+  
+   //normalize end of buffer
+   unsigned int pos = bufferSize;
+   buffer[pos--] = 4;   //ascii character code for 'end of transmission'
+   while(charClass(buffer[pos]) == RDELIM ||
+         buffer[pos] == 0) { buffer[pos--] = 4; }
    char* saveStart = buffer;
-
-   //Call addRow once initialy, as parseTable throws an error if it encounters something
-   //other than a row-delim/EOT char. While that could be changed, keeping things as is
+   
+   //Call addRow once, as parseTable throws an error if it encounters something
+   //other than a (RDELIM || EOT). While that could be changed, keeping things as is
    //provides a fair amount of error checking
-   if(Headers)
-      this->setHeaders(parseRow(buffer));
-   else
-      this->addRow(parseRow(buffer));
+   Headers ? this->setHeaders(parseRow(buffer)):
+             this->addRow(parseRow(buffer));
 
-   //auto startTime_1 = std::chrono::steady_clock::now();
    parseTable(buffer);
-   //auto endTime_1   = std::chrono::steady_clock::now();
-   //auto duration_1  = std::chrono::duration<double, std::ratio<1, 1>>(endTime_1 - startTime_1);
-   //std::cout << "parsing took " << duration_1.count() << " seconds.\n";
-
    //TODO: verify saveStart properly releases the associated memory
    delete [] saveStart;
 }
 MyCSV::CharClass MyCSV::charClass(char ch) const {
    if(ch == Delim)
       return DELIM;
-   else if(ch == '\n')
+   else if(ch == '\n' || ch == '\r')
       return RDELIM;
    else if(ch == Quote)
       return QUOTE;
@@ -179,16 +173,16 @@ void MyCSV::writeTable(string outfile) {
    }
    string line;
    if(Headers) {
-      for(uint i=0;i<this->size();i++) {
+      for(unsigned int i=0;i<this->size();i++) {
             line += Table[i]->header();
          line += Delim;
       }
       line.pop_back();
       outFile << line << "\n";
    }
-   for (uint i=0;i<rowCount();i++) {
+   for (unsigned int i=0;i<rowCount();i++) {
       line.clear();
-      for(uint col=0;col<this->size();col++)
+      for(unsigned int col=0;col<this->size();col++)
          line += Table[col]->at(i) + Delim;
       line.pop_back();
       outFile << line << "\n";
@@ -196,7 +190,7 @@ void MyCSV::writeTable(string outfile) {
    outFile.close();
 }
 //element_access_and_iterators****************************************
-MyCol* MyCSV::at(uint i) {
+MyCol* MyCSV::at(unsigned int i) {
    if (i >= this->size()) {
       cerr << "Requested collumn is not available" << "\n";
       return nullptr;
@@ -205,7 +199,7 @@ MyCol* MyCSV::at(uint i) {
       return Table[i];
    }
 }
-MyCol* MyCSV::operator[](uint i) {
+MyCol* MyCSV::operator[](unsigned int i) {
    return at(i);
 }
 MyCol* MyCSV::getCol(string header) {
@@ -223,7 +217,7 @@ MyCol* MyCSV::getCol(string header) {
    }  }  }
    return retCol;
 }
-const vector<string*> MyCSV::getRow(uint row) {
+const vector<string*> MyCSV::getRow(unsigned int row) {
    vector<string*> retVec;
    if(row >= this->rowCount() || row < 0)
       return retVec;
@@ -231,7 +225,7 @@ const vector<string*> MyCSV::getRow(uint row) {
       retVec.push_back(&col->at(row));
    return retVec;
 }
-void MyCSV::insert(uint pos, MyCSV &columns) {
+void MyCSV::insert(unsigned int pos, MyCSV &columns) {
    Table.insert(Table.begin()+pos, columns.begin(), columns.end());
    columns.free(0, -1);
 }
@@ -266,7 +260,7 @@ vector<vector<string>> MyCSV::recVec(bool normal, bool headers) { //record-vecto
    return std::move(recVec);
 }
 //element_destruction/release******************************
-void MyCSV::free(uint pos, int size) {
+void MyCSV::free(unsigned int pos, int size) {
    if(size == -1)
       size = this->size();
    Table.erase(Table.begin()+pos, Table.begin()+size);
@@ -284,7 +278,7 @@ void MyCSV::setHeaders(vector<string> headers) {
    if(headers.size() > this->size()) {
       this->resize(headers.size());
    }
-   for(uint i=0; i<headers.size() ; i++) {
+   for(unsigned int i=0; i<headers.size() ; i++) {
       this->at(i)->header(headers[i]);
    }
 }
@@ -299,7 +293,7 @@ vector<string> MyCSV::getHeaders() {
    }
    return headerVec;
 }
-void MyCSV::splitCol(uint column) {
+void MyCSV::splitCol(unsigned int column) {
    if(column >= this->size()) {
       cerr << "Error, the requested column is not available!\n";
       return;
@@ -330,7 +324,7 @@ void MyCSV::splitCol(uint column) {
    split.resize(maxSubItems);
    split.setDelim(*col->subDelim());
 
-   for(uint row = 0; row < col->size() ; row++) {
+   for(unsigned int row = 0; row < col->size() ; row++) {
       col->at(row) += 4; //ascii code for EOT
       char* ch = &col->at(row)[0];
       split.addRow(split.parseRow(ch));
@@ -349,16 +343,16 @@ void MyCSV::splitCol(uint column) {
 }
 //TODO: Gracefully handle empty cell in start column, currently if such is the case,
 //      there will be a leading delim. This isn't the biggest issue so I'm leaving it for now.
-MyCol* MyCSV::joinCols(uint first, uint last) {
+MyCol* MyCSV::joinCols(unsigned int first, unsigned int last) {
    if(first == last-1) {
       return this->at(first);
    } else if (first == last) { //error check, first should never equal last
       return nullptr;
    }
-   uint pos = first;
+   unsigned int pos = first;
    auto startCol = this->at(pos++);
    auto curCol   = this->at(pos);
-   uint rows = rowCount();
+   unsigned int rows = rowCount();
    if(!startCol->subDelim()) {
       startCol->subDelim(' ');
    }
@@ -439,7 +433,7 @@ void MyCSV::addRow(vector<string> row) {
    else if(row.size() < this->size())
       row.resize(this->size());
 
-   for(uint i=0; i<this->size(); i++) {
+   for(unsigned int i=0; i<this->size(); i++) {
       this->at(i)->emplace_back(row[i]);
    }
 }

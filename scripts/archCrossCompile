@@ -1,0 +1,2 @@
+x86_64-w64-mingw32-cmake -DCMAKE_EXE_LINKER_FLAGS=-static -DBUILD_SHARED_LIBS=OFF ~1/
+x86_64-w64-mingw32-make -j$(nproc)

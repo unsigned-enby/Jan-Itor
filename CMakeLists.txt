@@ -28,7 +28,9 @@ else()
    endif()
 endif()
 if(STATIC_BUILD)
-   set(CMAKE_CXX_FLAGS "-static")
+   #set(CMAKE_CXX_FLAGS="-static")
+   set(CMAKE_EXE_LINKER_FLAGS "-static")
+   set(BUILD_SHARED_LIBS OFF)
 endif()
 # ---- Declare library ----
 
@@ -40,8 +42,7 @@ add_library(Jan-Itor_lib
   src/MyCol.hpp
   src/MyCSV.cpp
   src/MyCSV.hpp
-)
-add_library(Menu_lib
+  
   src/Components.hpp
   src/TablePreview.cpp
   src/DelimDropDown.cpp
@@ -51,34 +52,32 @@ add_library(Menu_lib
   src/MyCSVMenu.hpp
   src/SerialMenu.hpp
 )
-add_executable(Jan-Itor 
-  src/main.cpp
-)
-
-#target_include_directories(Jan-Itor PRIVATE src)
-target_link_libraries(Menu_lib
-  PRIVATE Jan-Itor_lib
+target_compile_features(Jan-Itor_lib PUBLIC cxx_std_20)
+target_link_libraries(Jan-Itor_lib
   PRIVATE ftxui::screen
   PRIVATE ftxui::dom
   PRIVATE ftxui::component
 )
+
+
+# ---- Declare Executable ----
+add_executable(Jan-Itor 
+  src/main.cpp
+)
+target_compile_features(Jan-Itor PUBLIC cxx_std_20)
 target_link_libraries(Jan-Itor
   PRIVATE ftxui::screen
   PRIVATE Jan-Itor_lib
-  PRIVATE Menu_lib
 )
 
-target_compile_features(Jan-Itor_lib PUBLIC cxx_std_17)
-target_compile_features(Jan-Itor PUBLIC cxx_std_17)
-
-target_include_directories(Jan-Itor_lib SYSTEM INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
-target_include_directories(Jan-Itor     SYSTEM INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
-
-target_include_directories(Jan-Itor_lib
-   PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
-   PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/src>
-)
-target_include_directories(Jan-Itor
-   PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
-   PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/src>
-)
+#target_include_directories(Jan-Itor_lib SYSTEM INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
+#target_include_directories(Jan-Itor     SYSTEM INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
+#
+#target_include_directories(Jan-Itor_lib
+#   PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
+#   PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/src>
+#)
+#target_include_directories(Jan-Itor
+#   PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
+#   PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/src>
+#)

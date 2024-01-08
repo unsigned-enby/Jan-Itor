@@ -6,7 +6,7 @@
 using namespace std;
 char* fileToBuffer(string file, int &fileSize) {
    char* retBuf = nullptr;
-   ifstream inFile(file);
+   ifstream inFile(file, std::ios::binary);
    if(!inFile) {
       cout << "Error, problem opening file: " << file << '\n';
       return nullptr;

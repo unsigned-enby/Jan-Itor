@@ -47,19 +47,19 @@ class MyCol {
       void emplace_back(string &field) { 
          Column.emplace_back(field); //should std::move be used here?
       }
-      void resize (uint size) { 
+      void resize (unsigned int size) { 
          if(size == Column.size())
             return;
          Column.resize(size); 
       }
       
       string& operator[] (int i) { return Column[i]; }
-      string& at (uint i) { return Column[i]; }
+      string& at (unsigned int i) { return Column[i]; }
       vector<string>::iterator begin() {return Column.begin();}
       vector<string>::iterator end  () {return Column.end();}
       string& back() {return Column.back();}
       
-      uint size () const {return Column.size();}
+      unsigned int size () const {return Column.size();}
 
       string header() { return Header; }
       void header(string header) {
