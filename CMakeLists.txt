@@ -9,6 +9,12 @@ project(Jan-Itor
 option(SYSTEM_FTXUI "Use the system's ftxui libraries" OFF)
 option(STATIC_BUILD "Use statically linked libaries" OFF)
 
+if(STATIC_BUILD)
+   #set(CMAKE_CXX_FLAGS="-static")
+   set(CMAKE_EXE_LINKER_FLAGS "-static")
+   set(BUILD_SHARED_LIBS OFF)
+endif()
+
 if(SYSTEM_FTXUI)
    find_package(ftxui)
 else()
@@ -26,11 +32,6 @@ else()
      FetchContent_Populate(ftxui)
      add_subdirectory(${ftxui_SOURCE_DIR} ${ftxui_BINARY_DIR} EXCLUDE_FROM_ALL)
    endif()
-endif()
-if(STATIC_BUILD)
-   #set(CMAKE_CXX_FLAGS="-static")
-   set(CMAKE_EXE_LINKER_FLAGS "-static")
-   set(BUILD_SHARED_LIBS OFF)
 endif()
 # ---- Declare library ----
 
