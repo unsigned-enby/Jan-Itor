@@ -8,19 +8,20 @@ CSV Menu
       - A unique identifier (e.g PID) column (optional)
       - One or more response columns belonging to the associated respondents
       - Row delimiters are assumed to be either '\n'(Unix format) or '\n\r'(Windows' format)
-      - Currently, column headers are assumed to be present. So if this is an issue for you, the easiest thing would be 
-        to insert a blank row at the top of your table.
+      - Currently, column headers are assumed to be present. So if this is an issue for you, 
+        the easiest thing would be to insert a blank row at the top of your table.
    - The associated data is updated by `IpForm Menu` and the `Make corrections` button of 
      `Serial Positioning & Corrections`. Said data may be saved by supplying a `Output File` and 
      pressing `Save File`. However, this is not done automatically.
-      - You may see how the original file is manipulated by pressing the `Preview Table` button. Currently newlines are not rendered correctly.
+      - You may see how the original file is manipulated by pressing the `Preview Table` button. 
+         Currently newlines are not rendered correctly.
 
 IpForm Menu
 -----------
    - `Black Space` & `Removles` may be given via individual characters or the `Ranges` check boxes
    - `Black Space`:
       - Definition:
-         - What you want to keep as a single-sub item. Everything that is not specified by `Black Space`
+         - What you want to keep as a single sub-item. Everything that is not specified by `Black Space`
            or `Removles` is assumed to be a boundary (i.e white space) between two sub-items.
       - Example:
          - If `Black Space` is set to "a-z":
@@ -29,7 +30,7 @@ IpForm Menu
             - "this,that" will stay as "this,that"
    - `Removles`:
       - Definition:
-         - What you want to remove from a sub item.
+         - What you want to remove from a sub-item.
       - Example:
          - If `Removles` is set to "'" and `Black Space` is set to "a-z":
             - "it's an. example" becomes "its", "an", & "example"
@@ -43,9 +44,10 @@ IpForm Menu
       - Formats the given column based on the supplied choices.
    - `Split`:
       - Splits the selected column(s) according to the respective sub-delimiter.
-      - Currently I have only tested this split method after standardizing a column. As such, it can not (strictly speaking) be ran
-        before the `Clean` action. However, a work around would be to simply apply the `Clean` action after having only supplied a sub-delim.
-      - The resultant columns' headers are that of the original column + an incremented counter (origin 1).
+      - Currently I have only tested this split method after standardizing a column. As such, it 
+        can not (strictly speaking) be ran before the `Clean` action. However, a work around is to simply 
+        apply the `Clean` action after having only supplied a sub-delim.
+      - The resultant columns' headers are that of the original column + an incremented counter (origin 0).
       - Multiple columns may be selected, but have in no way been tested.
    - `Join`:
       - The opposite of `Split`. If no sub-delim is set, a space is used by default. Otherwise, it uses the 

@@ -30,7 +30,7 @@ Linux instructions
 git clone https://github.com/unsigned-enby/Jan-Itor.git
 cd ./Jan-Itor
 mkdir build && cd ./build
-cmake ..
+cmake -DCMAKE_BUILD_TYPE=Release ..
 make -j$(nproc)
 ```
 
@@ -40,7 +40,6 @@ Windows
      to use 'Windows Subsytem for Linux'. Your welcome to use either.
      While WSL will take (slightly) longer, and use (a moderate amount of) more disk space,
      it will leave you with a virtual Linux system installed (that you may even use to run GUI apps!)
-     I will give instructions for both.
 
 WSL:
 ----
@@ -62,7 +61,9 @@ Building natively on Windows:
 -----------------------------
    - First open a Windows Terminal and run these commands:
 ```ps1
+#install the neccassary C++ libraries
 winget install Microsoft.VisualStudio.2022.BuildTools --force --override "--wait --passive --add Microsoft.VisualStudio.Component.VC.Tools.x86.x64 --add Microsoft.VisualStudio.Component.Windows11SDK.22000"
+#installs the build tools
 winget install Git.Git Ninja-build.Ninja cmake
 ```
 - close and reopen the terminal
