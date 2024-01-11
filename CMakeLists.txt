@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.14)
 
 project(Jan-Itor
   VERSION 1.1
-  DESCRIPTION "App to clean and serialize single word response with a TUI interface."
+  DESCRIPTION "User-friendly app to clean and serialize single word responses, with a TUI interface."
   LANGUAGES CXX
 )
 
