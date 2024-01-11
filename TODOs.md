@@ -1,5 +1,7 @@
 TODOs
 =====
+- Allow the specification of escaped characters in IpFormMenu (e.g \n,\r,etc.)
+- Include testing.
 - Move MyCSV/MyCol into their own repository.
 - Write documentation for MyCSV/MyCol.
 - Implement a list form of MyCol(maybe).
@@ -15,9 +17,5 @@ TODOs
      and/or with the `Unique Words` list.
 - Implement various search/sort algorithms
 - Clean up certain portions of the code.
-
-Future Direction
-================
-- Implement various statistical routines.
-- Convert MyCol into a template to aid in the above point(e.g so numeric data
-  isn't inefficiently processed as strings).
+- Convert MyCol into a template to aid in processing numeric data types(when/if
+  statistical routines are implemented here).

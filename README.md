@@ -73,5 +73,40 @@ git clone https://github.com/unsigned-enby/Jan-Itor.git
 cd .\Jan-Itor
 mkdir build
 cd .\build
-cmake -G Ninja ..
+cmake -GNinja -DCMAKE_BUILD_TYPE=Release ..
 ninja -C .
+```
+
+Alternative to building(Windows only):
+--------------------------------------
+Optionally, you may download a statically compiled version for Windows. The simplist method would
+be to move the zip archive to your desktop, unpack it, rightclick on the file and choose 'open in terminal'
+and then simply type `.\Jan-Itor.exe` and hit enter!
+
+
+Limitations
+===========
+- Only ascii characters are handled.
+- Very large files (100MB+) will slow to a crawl. While the program may appear to freeze,
+  given enough time, it will continue on.
+- Overall I prioritized accuracy over efficiency. As such, certain parts could perform better.
+  However, as indicated above, the size of the file has to be rather large(as far as text files go)
+  for this to be an issue.
+
+Future Direction
+================
+- Implement various statistical routines.
+
+
+Bugs/Suggestions
+================
+I have done a fair amount of testing with this on both Linux and Windows.
+However, there are *alot* of edge cases the consider here. I would highly recommend
+spot checking the results. If you notice any bugs/errors, letting me know would
+be greatly appreciated(and I will fix it as soon as I am able). A detailed description
+and the original data would be ideal. But if the data is in some form confidential, how to
+replicate the issue will suffice. Just as well, Jan-Itor will output an error log (`error.log`)
+that would be helpful to include.
+   
+If you have any suggestions on how to improve the current utility, or on different utilities to
+add, I'm all ears!
