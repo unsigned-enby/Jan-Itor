@@ -1,8 +1,6 @@
 Jan-Itor
 ========
 
-![Demo](demo.mp4)
-
 Description
 ===========
 - Terminal app using FTXUI to preprocess single word responses
