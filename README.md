@@ -79,9 +79,9 @@ ninja -C .
 
 Alternative to building(Windows only):
 --------------------------------------
-Optionally, you may download a statically compiled version for Windows. The simplist method would
-be to move the zip archive to your desktop, unpack it, rightclick on the file and choose 'open in terminal'
-and then simply type `.\Jan-Itor.exe` and hit enter!
+Optionally, you may download a statically compiled (i.e everything it needs to run is 'baked-in') 
+version for Windows. The simplist method would be to move the zip archive to your desktop, unpack it, 
+rightclick on the file and choose 'open in terminal' and then simply type `.\Jan-Itor.exe` and hit enter!
 
 
 Limitations
